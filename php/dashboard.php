@@ -1,59 +1,74 @@
 <?php
 session_start();
+require_once 'config.php';
+require_once 'clases.php';
 
-// 1. Verificación de Seguridad: Si no hay sesión, redirigir al login
-if (!isset($_SESSION['usuario_id'])) {
-    header("Location: login.php");
-    exit();
-}
+if (!isset($_SESSION['usuario_id'])) { header("Location: login.php"); exit(); }
 
-// Datos del usuario desde la sesión
-$nombreUsuario = $_SESSION['nombre'];
+$userObj = new Usuario($conn);
+$misRutas = $userObj->obtenerMisRutas($_SESSION['usuario_id']);
+$estado = $userObj->obtenerEstadoFinanciero($_SESSION['usuario_id']);
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - SmartSACH</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Panel SmartSACH</title>
 </head>
 <body class="bg-light">
-
-    <nav class="navbar navbar-dark bg-success shadow-sm">
+    <nav class="navbar navbar-dark bg-success mb-4 shadow">
         <div class="container">
-            <a class="navbar-brand" href="#">SmartSACH David</a>
-            <a href="logout.php" class="btn btn-outline-light btn-sm">Cerrar Sesión</a>
+            <span class="navbar-brand">SmartSACH David</span>
+            <span class="navbar-text text-white">Hola, <?php echo $_SESSION['nombre']; ?></span>
+            <a href="logout.php" class="btn btn-outline-light btn-sm">Salir</a>
         </div>
     </nav>
 
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-8 text-center">
-                <div class="card shadow">
-                    <div class="card-body p-5">
-                        <div class="mb-4">
-                            <h1 class="display-4 text-success">¡Login Exitoso!</h1>
-                        </div>
-                        <h2 class="h4 mb-3">Bienvenido, <?php echo htmlspecialchars($nombreUsuario); ?></h2>
-                        <p class="text-muted">
-                            Has ingresado correctamente a la plataforma de gestión de recolección de basura. 
-                            Próximamente podrás ver aquí tus rutas cercanas y estado de cuenta.
-                        </p>
-                        
-                        <hr class="my-4">
-                        
-                        <div class="d-grid gap-2 d-md-block">
-                            <button class="btn btn-success" type="button">Ver mis rutas</button>
-                            <button class="btn btn-outline-secondary" type="button">Estado de Pago</button>
-                        </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white"><h5>Mis Rutas Asignadas</h5></div>
+                    <div class="card-body">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr><th>Ruta</th><th>Sector</th><th>Horario</th></tr>
+                            </thead>
+                            <tbody>
+                                <?php while($r = $misRutas->fetch_assoc()): ?>
+                                <tr>
+                                    <td><?php echo $r['nombre_ruta']; ?></td>
+                                    <td><?php echo $r['zona_sector']; ?></td>
+                                    <td><span class="badge bg-primary"><?php echo $r['horario_estimado']; ?></span></td>
+                                </tr>
+                                <?php endwhile; if($misRutas->num_rows == 0) echo "<tr><td colspan='3' class='text-center'>No tienes rutas asignadas aún.</td></tr>"; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body text-center">
+                        <h6>Estado de Paz y Salvo</h6>
+                        <?php if($estado && $estado['estado_pago'] == 'al_dia'): ?>
+                            <div class="alert alert-success">
+                                <h3>AL DÍA</h3>
+                                <small>Vence: <?php echo $estado['proximo_vencimiento']; ?></small>
+                            </div>
+                        <?php else: ?>
+                            <div class="alert alert-danger">
+                                <h3>MOROSO</h3>
+                                <p>Por favor regularice su pago.</p>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
