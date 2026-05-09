@@ -1,0 +1,83 @@
+USE sistema_recoleccion;
+
+-- Cambiamos el delimitador para poder usar punto y coma dentro de los bloques
+DELIMITER //
+
+/* 1. TRIGGER: ACTIVACIÓN AUTOMÁTICA DE SUSCRIPCIÓN
+   Cuando cambies el estado de un usuario a 'activo', se le crea 
+   automáticamente su suscripción con los 30 días de gracia.
+*/
+CREATE TRIGGER tr_activar_suscripcion_inicial
+AFTER UPDATE ON usuarios
+FOR EACH ROW
+BEGIN
+    IF OLD.estado_verificacion = 'pendiente' AND NEW.estado_verificacion = 'activo' THEN
+        INSERT INTO suscripciones (usuario_id, ubicacion_id, ruta_id, fecha_activacion, proximo_vencimiento, estado_pago)
+        SELECT 
+            NEW.usuario_id, 
+            ub.ubicacion_id, 
+            1, -- Asigna la ruta 1 por defecto (puedes cambiarlo luego)
+            CURDATE(), 
+            DATE_ADD(CURDATE(), INTERVAL 30 DAY), 
+            'al_dia'
+        FROM ubicaciones_servicio ub 
+        WHERE ub.usuario_id = NEW.usuario_id 
+        LIMIT 1;
+    END IF;
+END//
+
+/* 2. STORED PROCEDURE: REGISTRO DE PAGOS Y RENOVACIÓN
+   Este "método" registra el pago en la tabla de pagos y automáticamente
+   extiende la fecha de vencimiento 30 días más.
+*/
+CREATE PROCEDURE sp_procesar_pago_sach(
+    IN p_suscripcion_id INT,
+    IN p_monto DECIMAL(10,2),
+    IN p_metodo VARCHAR(50)
+)
+BEGIN
+    -- Registrar el pago
+    INSERT INTO pagos (suscripcion_id, monto, metodo_pago)
+    VALUES (p_suscripcion_id, p_monto, p_metodo);
+
+    -- Actualizar la fecha de vencimiento y poner al día
+    UPDATE suscripciones 
+    SET proximo_vencimiento = DATE_ADD(proximo_vencimiento, INTERVAL 30 DAY),
+        estado_pago = 'al_dia'
+    WHERE suscripcion_id = p_suscripcion_id;
+END//
+
+/* 3. TRIGGER: NOTIFICACIÓN POR MOVIMIENTO DE CAMIÓN
+   Si la ubicación del camión cambia, genera una alerta para los usuarios de esa ruta.
+*/
+CREATE TRIGGER tr_alerta_proximidad_sach
+AFTER UPDATE ON camiones_rastreo
+FOR EACH ROW
+BEGIN
+    IF NEW.latitud <> OLD.latitud OR NEW.longitud <> OLD.longitud THEN
+        INSERT INTO notificaciones (usuario_id, titulo, mensaje, tipo_notificacion)
+        SELECT s.usuario_id, '¡Camión SACH en camino!', 
+               CONCAT('El recolector de la ruta ', r.nombre_ruta, ' se está moviendo en tu sector.'), 'ruta'
+        FROM suscripciones s
+        JOIN rutas r ON s.ruta_id = r.ruta_id
+        WHERE s.ruta_id = NEW.ruta_id;
+    END IF;
+END//
+
+DELIMITER ;
+
+/* 4. VISTA: ESTADO DE PAZ Y SALVO EN TIEMPO REAL
+   Consulta rápida para tu frontend para saber quién debe y quién no.
+*/
+CREATE OR REPLACE VIEW vista_paz_y_salvo_usuarios AS
+SELECT 
+    u.cedula,
+    CONCAT(u.nombre, ' ', u.apellido) AS cliente,
+    s.proximo_vencimiento,
+    CASE 
+        WHEN s.proximo_vencimiento >= CURDATE() THEN 'PAZ Y SALVO'
+        ELSE 'EN MORA'
+    END AS estado_financiero,
+    DATEDIFF(s.proximo_vencimiento, CURDATE()) AS dias_para_vencimiento
+FROM usuarios u
+JOIN suscripciones s ON u.usuario_id = s.usuario_id;

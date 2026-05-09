@@ -1,0 +1,51 @@
+USE sistema_recoleccion;
+
+-- 1. Insertar Rutas del Servicio SACH en David
+INSERT INTO rutas (nombre_ruta, zona_sector, horario_estimado, estado_ruta) VALUES 
+('SACH - David Centro', 'Barrio Bolívar y alrededores', 'Lunes y Jueves - 7:00 AM', 'activa'),
+('SACH - San Pablo', 'Urbanizaciones de San Pablo Viejo/Nuevo', 'Martes y Viernes - 8:00 AM', 'activa'),
+('SACH - Las Lomas', 'Vía Interamericana y sectores aledaños', 'Miércoles y Sábado - 6:00 AM', 'activa');
+
+-- 2. Insertar 3 Usuarios de Prueba
+-- Nota: Las contraseñas son representaciones de hashes (simulando cifrado previo)
+INSERT INTO usuarios (nombre, apellido, cedula, correo_electronico, password, estado_verificacion) VALUES 
+
+-- Clave: Carlos2026!
+('Carlos', 'González', '4-123-456', 'carlos.gonzalez@example.com', '$2y$10$7R0Z.mI7YvN.pX8uE8u6uO6m6m6m6m6m6m6m6m6m6m6m6m6m6m', 'activo'),
+
+-- Clave: MariaSACH*
+('María', 'Rodríguez', '4-987-654', 'maria.rod@example.com', '$2y$10$9K1L.mI7YvN.pX8uE8u6uO7n7n7n7n7n7n7n7n7n7n7n7n7n7n', 'activo'),
+
+-- Clave: JuanDavid04
+('Juan', 'Pérez', '4-111-222', 'juan.perez@example.com', '$2y$10$1M2N.mI7YvN.pX8uE8u6uO8p8p8p8p8p8p8p8p8p8p8p8p8p8p', 'pendiente');
+
+-- 3. Insertar Ubicaciones de Servicio (Coordenadas reales de David)
+INSERT INTO ubicaciones_servicio (usuario_id, nombre_referencia, coordenadas_gps, descripcion_direccion, foto_url) VALUES 
+(1, 'Casa Principal', ST_GeomFromText('POINT(8.4289 -82.4283)'), 'Detrás del Parque de Cervantes, Calle 3era Este', 'foto_casa1.jpg'),
+(2, 'Local Comercial', ST_GeomFromText('POINT(8.4350 -82.4150)'), 'Vía Boquete, frente a Plaza Terronal', 'foto_local.jpg'),
+(3, 'Residencia David', ST_GeomFromText('POINT(8.4500 -82.4400)'), 'Urbanización Las Perlas, Calle principal', 'foto_casa2.jpg');
+
+-- 4. Crear Suscripciones y aplicar lógica de 30 días (Paz y Salvo)
+-- Se asume que se registraron hoy, el vencimiento es en 30 días.
+INSERT INTO suscripciones (usuario_id, ubicacion_id, ruta_id, fecha_activacion, proximo_vencimiento, estado_pago) VALUES 
+(1, 1, 1, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'al_dia'),
+(2, 2, 3, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'al_dia'),
+(3, 3, 2, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'al_dia');
+
+-- 5. Insertar un pago inicial para el primer usuario
+INSERT INTO pagos (suscripcion_id, monto, metodo_pago) VALUES 
+(1, 15.00, 'Tarjeta de Crédito');
+
+-- 6. Insertar Camiones en movimiento (Rastreo SACH)
+INSERT INTO camiones_rastreo (ruta_id, placa_vehiculo, latitud, longitud) VALUES 
+(1, 'CH-1025', 8.4300, -82.4300), -- Cerca de David Centro
+(3, 'CH-2050', 8.4400, -82.4180); -- Por Plaza Terronal
+
+-- 7. Insertar Notificaciones de Bienvenida
+INSERT INTO notificaciones (usuario_id, titulo, mensaje, tipo_notificacion) VALUES 
+(1, 'Bienvenido al SACH', 'Tu cuenta ha sido activada con éxito.', 'sistema'),
+(3, 'Cuenta Pendiente', 'Por favor, sube una foto de tu ubicación para verificar el servicio.', 'sistema');
+
+-- 8. Un reporte de prueba
+INSERT INTO reportes_incidencias (usuario_id, ubicacion_id, tipo_incidencia, descripcion) VALUES 
+(2, 2, 'no_paso_camion', 'El camión de la ruta de Las Lomas no pasó hoy por el local.');
