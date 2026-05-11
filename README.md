@@ -49,6 +49,12 @@ La API queda disponible en:
 http://localhost:8000/backend/index.php/api/health
 ```
 
+Diagnostico de base de datos:
+
+```text
+http://localhost:8000/backend/index.php/api/db-check
+```
+
 ## Deploy en Render con Supabase
 
 Sube el repositorio completo a GitHub. En Render crea un **Web Service** conectado al repo y usa Docker. Render debe detectar el `Dockerfile` de la raíz; si te pide ruta, usa:
@@ -81,6 +87,18 @@ La página raíz redirige al frontend y la API queda en:
 
 ```text
 https://TU-SERVICIO.onrender.com/backend/index.php/api/health
+```
+
+Diagnostico de base de datos en Render:
+
+```text
+https://TU-SERVICIO.onrender.com/backend/index.php/api/db-check
+```
+
+Tambien funciona como:
+
+```text
+https://TU-SERVICIO.onrender.com/backend/api/db-check
 ```
 
 ## Funcionalidades

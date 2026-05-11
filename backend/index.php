@@ -16,7 +16,7 @@ session_name('SMARTSACHSESSID');
 session_set_cookie_params([
     'lifetime' => 0,
     'path' => '/',
-    'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+    'secure' => is_secure_request(),
     'httponly' => true,
     'samesite' => 'Lax',
 ]);
@@ -31,6 +31,7 @@ header('Access-Control-Allow-Origin: ' . $allowedOrigin);
 header('Access-Control-Allow-Credentials: true');
 header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
@@ -42,6 +43,22 @@ function json_response(array $payload, int $status = 200): void
     http_response_code($status);
     echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
+}
+
+function debug_enabled(): bool
+{
+    $value = strtolower((string) (getenv('APP_DEBUG') ?: ($_ENV['APP_DEBUG'] ?? 'false')));
+    return in_array($value, ['1', 'true', 'yes', 'on'], true);
+}
+
+function database_error(PDOException $e): void
+{
+    error_log('[SmartSACH DB] ' . $e->getMessage());
+    $payload = ['ok' => false, 'message' => 'No se pudo completar la operación en la base de datos.'];
+    if (debug_enabled()) {
+        $payload['debug'] = $e->getMessage();
+    }
+    json_response($payload, 500);
 }
 
 function db(): PDO
@@ -83,18 +100,37 @@ function clean_string(mixed $value, int $max = 255): string
     return function_exists('mb_substr') ? mb_substr($value, 0, $max) : substr($value, 0, $max);
 }
 
+function is_secure_request(): bool
+{
+    $https = $_SERVER['HTTPS'] ?? '';
+    $forwardedProto = $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '';
+    return $https === 'on' || $https === '1' || strtolower($forwardedProto) === 'https';
+}
+
 function csrf_token(): string
 {
     if (empty($_SESSION['csrf_token'])) {
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
     }
+    setcookie('SMARTSACH_CSRF', $_SESSION['csrf_token'], [
+        'expires' => 0,
+        'path' => '/',
+        'secure' => is_secure_request(),
+        'httponly' => false,
+        'samesite' => 'Lax',
+    ]);
     return $_SESSION['csrf_token'];
 }
 
 function require_csrf(): void
 {
     $header = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-    if (!$header || !hash_equals((string) ($_SESSION['csrf_token'] ?? ''), $header)) {
+    $sessionToken = (string) ($_SESSION['csrf_token'] ?? '');
+    $cookieToken = (string) ($_COOKIE['SMARTSACH_CSRF'] ?? '');
+    $validSessionToken = $sessionToken !== '' && hash_equals($sessionToken, $header);
+    $validCookieToken = $cookieToken !== '' && hash_equals($cookieToken, $header);
+
+    if (!$header || (!$validSessionToken && !$validCookieToken)) {
         json_response(['ok' => false, 'message' => 'Token de seguridad inválido. Recarga la página.'], 419);
     }
 }
@@ -177,6 +213,42 @@ try {
         json_response(['ok' => true, 'message' => 'SmartSACH API is running', 'csrfToken' => csrf_token()]);
     }
 
+    if ($method === 'GET' && in_array($path, ['api/db-check', 'api/db_check', 'api/dbcheck', 'db-check'], true)) {
+        $pdo = db();
+        $tables = ['usuarios', 'ubicaciones_servicio', 'rutas', 'suscripciones', 'vista_paz_y_salvo_usuarios'];
+        $result = [
+            'database' => $pdo->query('SELECT current_database()')->fetchColumn(),
+            'tables' => [],
+            'columns' => [],
+            'counts' => [],
+        ];
+
+        foreach ($tables as $table) {
+            $stmt = $pdo->prepare('SELECT to_regclass(:table)');
+            $stmt->execute(['table' => 'public.' . $table]);
+            $result['tables'][$table] = (bool) $stmt->fetchColumn();
+        }
+
+        foreach (['usuarios', 'ubicaciones_servicio'] as $table) {
+            $stmt = $pdo->prepare(
+                'SELECT column_name, data_type
+                 FROM information_schema.columns
+                 WHERE table_schema = :schema AND table_name = :table
+                 ORDER BY ordinal_position'
+            );
+            $stmt->execute(['schema' => 'public', 'table' => $table]);
+            $result['columns'][$table] = $stmt->fetchAll();
+        }
+
+        foreach (['usuarios', 'ubicaciones_servicio'] as $table) {
+            if (!empty($result['tables'][$table])) {
+                $result['counts'][$table] = (int) $pdo->query("SELECT COUNT(*) FROM {$table}")->fetchColumn();
+            }
+        }
+
+        json_response(['ok' => true, 'data' => $result]);
+    }
+
     if ($method === 'GET' && $path === 'api/auth/csrf') {
         json_response(['ok' => true, 'csrfToken' => csrf_token()]);
     }
@@ -237,26 +309,33 @@ try {
             json_response(['ok' => false, 'message' => 'Ya existe una cuenta con estos datos.', 'errors' => $errors], 409);
         }
 
-        $pdo->beginTransaction();
-        $stmt = $pdo->prepare('INSERT INTO usuarios (nombre, apellido, cedula, correo_electronico, password) VALUES (:nombre, :apellido, :cedula, :correo, :password) RETURNING usuario_id');
-        $stmt->execute([
-            'nombre' => $nombre,
-            'apellido' => $apellido,
-            'cedula' => $cedula,
-            'correo' => $correo,
-            'password' => password_hash($password, PASSWORD_DEFAULT),
-        ]);
-        $userId = (int) $stmt->fetchColumn();
+        try {
+            $pdo->beginTransaction();
+            $stmt = $pdo->prepare('INSERT INTO usuarios (nombre, apellido, cedula, correo_electronico, password) VALUES (:nombre, :apellido, :cedula, :correo, :password) RETURNING usuario_id');
+            $stmt->execute([
+                'nombre' => $nombre,
+                'apellido' => $apellido,
+                'cedula' => $cedula,
+                'correo' => $correo,
+                'password' => password_hash($password, PASSWORD_DEFAULT),
+            ]);
+            $userId = (int) $stmt->fetchColumn();
 
-        $location = $pdo->prepare('INSERT INTO ubicaciones_servicio (usuario_id, nombre_referencia, latitud, longitud, descripcion_direccion) VALUES (:usuario_id, :referencia, :latitud, :longitud, :descripcion)');
-        $location->execute([
-            'usuario_id' => $userId,
-            'referencia' => $direccion,
-            'latitud' => $latitud,
-            'longitud' => $longitud,
-            'descripcion' => $descripcion,
-        ]);
-        $pdo->commit();
+            $location = $pdo->prepare('INSERT INTO ubicaciones_servicio (usuario_id, nombre_referencia, latitud, longitud, descripcion_direccion) VALUES (:usuario_id, :referencia, :latitud, :longitud, :descripcion)');
+            $location->execute([
+                'usuario_id' => $userId,
+                'referencia' => $direccion,
+                'latitud' => $latitud,
+                'longitud' => $longitud,
+                'descripcion' => $descripcion,
+            ]);
+            $pdo->commit();
+        } catch (PDOException $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $e;
+        }
 
         session_regenerate_id(true);
         $_SESSION['user_id'] = $userId;
@@ -320,7 +399,8 @@ try {
 
     json_response(['ok' => false, 'message' => 'Endpoint no encontrado.'], 404);
 } catch (PDOException $e) {
-    json_response(['ok' => false, 'message' => 'No se pudo completar la operación en la base de datos.'], 500);
+    database_error($e);
 } catch (Throwable $e) {
+    error_log('[SmartSACH Error] ' . $e->getMessage());
     json_response(['ok' => false, 'message' => 'Error inesperado del servidor.'], 500);
 }

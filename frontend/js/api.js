@@ -15,10 +15,11 @@
     })[char]);
   }
 
-  async function ensureCsrf() {
-    if (state.csrfToken) return state.csrfToken;
+  async function ensureCsrf(force = false) {
+    if (state.csrfToken && !force) return state.csrfToken;
     const response = await fetch(`${API_BASE}/api/auth/csrf`, {
       credentials: "include",
+      cache: "no-store",
     });
     const payload = await response.json();
     if (!payload.ok) throw new Error(payload.message || "No se pudo iniciar seguridad CSRF.");
@@ -26,7 +27,7 @@
     return state.csrfToken;
   }
 
-  async function request(path, options = {}) {
+  async function request(path, options = {}, retry = true) {
     const method = options.method || "GET";
     const headers = {
       "Content-Type": "application/json",
@@ -37,16 +38,39 @@
       headers["X-CSRF-Token"] = await ensureCsrf();
     }
 
-    const response = await fetch(`${API_BASE}${path}`, {
+    let response = await fetch(`${API_BASE}${path}`, {
       method,
       credentials: "include",
       headers,
       body: options.body ? JSON.stringify(options.body) : undefined,
+      cache: "no-store",
     });
     const payload = await response.json().catch(() => ({
       ok: false,
       message: "Respuesta inválida del servidor.",
     }));
+
+    if (response.status === 419 && retry && method !== "GET") {
+      headers["X-CSRF-Token"] = await ensureCsrf(true);
+      response = await fetch(`${API_BASE}${path}`, {
+        method,
+        credentials: "include",
+        headers,
+        body: options.body ? JSON.stringify(options.body) : undefined,
+        cache: "no-store",
+      });
+      const retryPayload = await response.json().catch(() => ({
+        ok: false,
+        message: "Respuesta inválida del servidor.",
+      }));
+      if (!response.ok || !retryPayload.ok) {
+        const error = new Error(retryPayload.message || "No se pudo completar la solicitud.");
+        error.status = response.status;
+        error.errors = retryPayload.errors || {};
+        throw error;
+      }
+      return retryPayload;
+    }
 
     if (!response.ok || !payload.ok) {
       const error = new Error(payload.message || "No se pudo completar la solicitud.");
