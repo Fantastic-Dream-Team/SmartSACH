@@ -55,6 +55,16 @@ function database_error(PDOException $e): void
 {
     error_log('[SmartSACH DB] ' . $e->getMessage());
     $payload = ['ok' => false, 'message' => 'No se pudo completar la operación en la base de datos.'];
+    $message = $e->getMessage();
+    if (str_contains($message, 'relation') && str_contains($message, 'does not exist')) {
+        $payload['message'] = 'Falta una tabla en la base de datos. Ejecuta la migración de Supabase.';
+    } elseif (str_contains($message, 'column') && str_contains($message, 'does not exist')) {
+        $payload['message'] = 'Falta una columna en la base de datos. Revisa la migración de Supabase.';
+    } elseif (str_contains($message, 'password authentication failed')) {
+        $payload['message'] = 'Las credenciales de conexión a Supabase no son correctas.';
+    } elseif (str_contains($message, 'Connection refused') || str_contains($message, 'could not translate host name')) {
+        $payload['message'] = 'No se pudo conectar con Supabase. Revisa DB_HOST, DB_PORT y red.';
+    }
     if (debug_enabled()) {
         $payload['debug'] = $e->getMessage();
     }
@@ -216,11 +226,16 @@ try {
     if ($method === 'GET' && in_array($path, ['api/db-check', 'api/db_check', 'api/dbcheck', 'db-check'], true)) {
         $pdo = db();
         $tables = ['usuarios', 'ubicaciones_servicio', 'rutas', 'suscripciones', 'vista_paz_y_salvo_usuarios'];
+        $requiredColumns = [
+            'usuarios' => ['usuario_id', 'nombre', 'apellido', 'cedula', 'correo_electronico', 'password', 'estado_verificacion'],
+            'ubicaciones_servicio' => ['ubicacion_id', 'usuario_id', 'nombre_referencia', 'latitud', 'longitud', 'descripcion_direccion'],
+        ];
         $result = [
             'database' => $pdo->query('SELECT current_database()')->fetchColumn(),
             'tables' => [],
             'columns' => [],
             'counts' => [],
+            'missing_columns' => [],
         ];
 
         foreach ($tables as $table) {
@@ -238,6 +253,8 @@ try {
             );
             $stmt->execute(['schema' => 'public', 'table' => $table]);
             $result['columns'][$table] = $stmt->fetchAll();
+            $availableColumns = array_map(fn ($column) => $column['column_name'], $result['columns'][$table]);
+            $result['missing_columns'][$table] = array_values(array_diff($requiredColumns[$table], $availableColumns));
         }
 
         foreach (['usuarios', 'ubicaciones_servicio'] as $table) {
