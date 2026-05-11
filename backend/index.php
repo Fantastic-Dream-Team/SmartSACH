@@ -62,8 +62,10 @@ function database_error(PDOException $e): void
         $payload['message'] = 'Falta una columna en la base de datos. Revisa la migración de Supabase.';
     } elseif (str_contains($message, 'password authentication failed')) {
         $payload['message'] = 'Las credenciales de conexión a Supabase no son correctas.';
+    } elseif (str_contains($message, 'Network is unreachable')) {
+        $payload['message'] = 'Render no puede conectar al host directo IPv6 de Supabase. Usa el Supabase Session Pooler IPv4 en DB_HOST y DB_USER.';
     } elseif (str_contains($message, 'Connection refused') || str_contains($message, 'could not translate host name')) {
-        $payload['message'] = 'No se pudo conectar con Supabase. Revisa DB_HOST, DB_PORT y red.';
+        $payload['message'] = 'No se pudo conectar con Supabase. Revisa DB_HOST, DB_PORT, DB_USER y red.';
     }
     if (debug_enabled()) {
         $payload['debug'] = $e->getMessage();
