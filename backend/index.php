@@ -60,10 +60,6 @@ function database_error(PDOException $e): void
         $payload['message'] = 'Falta una tabla en la base de datos. Ejecuta la migración de Supabase.';
     } elseif (str_contains($message, 'column') && str_contains($message, 'does not exist')) {
         $payload['message'] = 'Falta una columna en la base de datos. Revisa la migración de Supabase.';
-    } elseif (str_contains($message, 'value too long') || str_contains($message, 'String data')) {
-        $payload['message'] = 'Una columna de Supabase es muy corta para los datos del registro. Ejecuta de nuevo la migracion actualizada.';
-    } elseif (str_contains($message, 'duplicate key value')) {
-        $payload['message'] = 'Ya existe una cuenta con ese correo o cedula.';
     } elseif (str_contains($message, 'password authentication failed')) {
         $payload['message'] = 'Las credenciales de conexión a Supabase no son correctas.';
     } elseif (str_contains($message, 'Network is unreachable')) {
@@ -286,7 +282,7 @@ try {
         $correo = strtolower(clean_string($data['correo'] ?? '', 100));
         $password = (string) ($data['password'] ?? '');
         $confirmPassword = (string) ($data['confirmPassword'] ?? '');
-        $direccion = clean_string($data['direccion'] ?? '', 240);
+        $direccion = clean_string($data['direccion'] ?? '', 255);
         $descripcion = clean_string($data['descripcion'] ?? '', 2000);
         $latitud = filter_var($data['latitud'] ?? null, FILTER_VALIDATE_FLOAT);
         $longitud = filter_var($data['longitud'] ?? null, FILTER_VALIDATE_FLOAT);

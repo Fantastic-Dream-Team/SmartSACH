@@ -18,14 +18,6 @@ Ejecuta los scripts en PostgreSQL:
 \i basededatos/postgretrigers.sql
 ```
 
-Si la base ya existia en Supabase, ejecuta tambien la migracion incremental:
-
-```sql
-\i basededatos/supabase_migration_auth.sql
-```
-
-En Supabase SQL Editor puedes pegar el contenido completo de `basededatos/supabase_migration_auth.sql`. Ejecutalo de nuevo despues de estos cambios: ahora tambien amplia columnas existentes, por ejemplo `ubicaciones_servicio.nombre_referencia`, para aceptar direcciones largas del mapa.
-
 Copia `backend/.env.example` a `backend/.env` y ajusta tus credenciales:
 
 ```text
@@ -50,17 +42,6 @@ Abre:
 ```text
 http://localhost:8000/frontend/
 ```
-
-## Logos
-
-Guarda los logos del proyecto en `assets/img/` con estos nombres:
-
-```text
-assets/img/logo-smartsach.png
-assets/img/logo-mark.png
-```
-
-El frontend los usa automaticamente. Si no existen, muestra un fallback basico para que la pagina no se rompa.
 
 La API queda disponible en:
 
@@ -123,14 +104,6 @@ Diagnostico de base de datos en Render:
 ```text
 https://TU-SERVICIO.onrender.com/backend/index.php/api/db-check
 ```
-
-Si el registro falla, revisa:
-
-1. Que `DB_HOST` use el Session Pooler de Supabase.
-2. Que `DB_USER` sea `postgres.PROJECT_REF`.
-3. Que `DB_SSLMODE=require`.
-4. Que `supabase_migration_auth.sql` se haya ejecutado sin errores.
-5. Que el correo y cedula usados no existan ya en `usuarios`.
 
 Tambien funciona como:
 
