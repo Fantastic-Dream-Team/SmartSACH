@@ -20,3 +20,11 @@ La carpeta `Pruebas XAMPP` se conserva intacta como referencia. La division func
 ## Database
 
 Los scripts SQL originales de `Pruebas XAMPP/BD-Scripts` deben mantenerse como referencia y consolidarse con los scripts ya presentes en `SmartSACH-FDT/Database`.
+
+Para Supabase, la carpeta `SmartSACH-FDT/Database` contiene el esquema usado por el backend:
+
+- `BD-Supabase.sql`: tablas principales y extension PostGIS.
+- `Funciones_Triggers-SB.sql`: triggers y procedimientos.
+- `Views.sql`: vistas de consulta.
+
+El backend actual usa conexion PostgreSQL directa mediante `pg`, con variables `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` y `DB_SSL`.

@@ -9,9 +9,17 @@ services:
         value: production
       - key: CORS_ORIGIN
         sync: false
-      - key: SUPABASE_URL
+      - key: DB_HOST
+        value: aws-1-us-west-2.pooler.supabase.com
+      - key: DB_PORT
+        value: 5432
+      - key: DB_NAME
+        value: postgres
+      - key: DB_USER
+        value: postgres.hbgfywutsshezntatljs
+      - key: DB_PASSWORD
         sync: false
-      - key: SUPABASE_ANON_KEY
-        sync: false
+      - key: DB_SSL
+        value: true
       - key: JWT_SECRET
         generateValue: true

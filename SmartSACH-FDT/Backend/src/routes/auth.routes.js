@@ -2,8 +2,8 @@ import bcrypt from "bcryptjs";
 import { Router } from "express";
 import jwt from "jsonwebtoken";
 
+import { requireDatabase } from "../config/database.js";
 import { env } from "../config/env.js";
-import { requireSupabase } from "../config/supabase.js";
 
 const router = Router();
 
@@ -20,8 +20,10 @@ function createToken(user) {
 }
 
 router.post("/register", async (req, res, next) => {
+  const db = requireDatabase();
+  const client = await db.connect();
+
   try {
-    const db = requireSupabase();
     const { nombre, apellido, cedula, correo, password, descripcion } = req.body;
 
     if (!nombre || !apellido || !cedula || !correo || !password) {
@@ -30,30 +32,26 @@ router.post("/register", async (req, res, next) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const { data: user, error: userError } = await db
-      .from("usuarios")
-      .insert({
-        nombre,
-        apellido,
-        cedula,
-        correo_electronico: correo,
-        password: passwordHash,
-      })
-      .select("usuario_id, nombre, apellido, cedula, correo_electronico")
-      .single();
+    await client.query("BEGIN");
 
-    if (userError) {
-      userError.statusCode = userError.code === "23505" ? 409 : 400;
-      throw userError;
-    }
+    const userResult = await client.query(
+      `INSERT INTO usuarios (nombre, apellido, cedula, correo_electronico, password)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING usuario_id, nombre, apellido, cedula, correo_electronico`,
+      [nombre, apellido, cedula, correo, passwordHash],
+    );
+
+    const user = userResult.rows[0];
 
     if (descripcion) {
-      await db.from("ubicaciones_servicio").insert({
-        usuario_id: user.usuario_id,
-        descripcion_direccion: descripcion,
-        coordenadas_gps: "SRID=4326;POINT(-82.43 8.43)",
-      });
+      await client.query(
+        `INSERT INTO ubicaciones_servicio (usuario_id, descripcion_direccion, coordenadas_gps)
+         VALUES ($1, $2, ST_GeogFromText($3))`,
+        [user.usuario_id, descripcion, "SRID=4326;POINT(-82.43 8.43)"],
+      );
     }
+
+    await client.query("COMMIT");
 
     res.status(201).json({
       message: "Registro exitoso.",
@@ -61,13 +59,20 @@ router.post("/register", async (req, res, next) => {
       token: createToken(user),
     });
   } catch (error) {
+    await client.query("ROLLBACK").catch(() => {});
+    if (error.code === "23505") {
+      error.statusCode = 409;
+      error.message = "Los datos ya estan registrados.";
+    }
     next(error);
+  } finally {
+    client.release();
   }
 });
 
 router.post("/login", async (req, res, next) => {
   try {
-    const db = requireSupabase();
+    const db = requireDatabase();
     const { correo, password } = req.body;
 
     if (!correo || !password) {
@@ -75,13 +80,16 @@ router.post("/login", async (req, res, next) => {
       return;
     }
 
-    const { data: user, error } = await db
-      .from("usuarios")
-      .select("usuario_id, nombre, apellido, correo_electronico, password")
-      .eq("correo_electronico", correo)
-      .single();
+    const result = await db.query(
+      `SELECT usuario_id, nombre, apellido, correo_electronico, password
+       FROM usuarios
+       WHERE correo_electronico = $1
+       LIMIT 1`,
+      [correo],
+    );
 
-    if (error || !user) {
+    const user = result.rows[0];
+    if (!user) {
       res.status(401).json({ error: "Credenciales incorrectas." });
       return;
     }

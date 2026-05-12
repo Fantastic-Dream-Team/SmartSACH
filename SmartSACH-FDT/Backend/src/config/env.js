@@ -12,5 +12,15 @@ export const env = {
     process.env.VITE_SUPABASE_ANON_KEY ||
     process.env.SUPABASE_KEY ||
     "",
+  dbHost: process.env.DB_HOST || "",
+  dbPort: Number(process.env.DB_PORT || 5432),
+  dbName: process.env.DB_NAME || process.env.POSTGRES_DB || "",
+  dbUser: process.env.DB_USER || process.env.POSTGRES_USER || "",
+  dbPassword: process.env.DB_PASSWORD || process.env.POSTGRES_PASSWORD || "",
+  dbSsl:
+    process.env.DB_SSL === "true" ||
+    process.env.DB_SSL === "1" ||
+    process.env.DB_HOST?.includes("supabase.com") ||
+    process.env.NODE_ENV === "production",
   jwtSecret: process.env.JWT_SECRET || "dev-secret-change-me",
 };
