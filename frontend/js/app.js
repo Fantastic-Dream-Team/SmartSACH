@@ -27,7 +27,7 @@ function asset(path) {
 function brandMark() {
   return `
     <span class="brand-mark" aria-hidden="true">
-      <img src="${asset("logoblanco.png")}" alt="" onerror="this.hidden=true;this.nextElementSibling.hidden=false" />
+      <img src="${asset("logo-mark.png")}" alt="" onerror="this.hidden=true;this.nextElementSibling.hidden=false" />
       <svg viewBox="0 0 100 100" hidden>
         <circle cx="50" cy="50" r="50" fill="currentColor" opacity="0.04"></circle>
         <path d="M3 61 C20 47, 33 49, 50 63 C66 76, 82 71, 97 58" fill="none" stroke="currentColor" stroke-width="4"></path>
@@ -41,7 +41,7 @@ function brandMark() {
 function brandLockup() {
   return `
     <a class="brand-lockup" href="#/home" aria-label="SmartSACH inicio">
-      <img class="brand-logo-image" src="${asset("sachlogo.png")}" alt="SmartSACH" onerror="this.hidden=true;this.nextElementSibling.hidden=false" />
+      <img class="brand-logo-image" src="${asset("logo-smartsach.png")}" alt="SmartSACH" onerror="this.hidden=true;this.nextElementSibling.hidden=false" />
       <span class="brand-fallback" hidden>
         ${brandMark()}
         <span class="brand-word">
@@ -376,53 +376,24 @@ async function renderProfile() {
         </aside>
         <section class="data-panel no-margin">
           <h2>Datos de cuenta</h2>
-          <div data-alert></div>
-          <form id="profileForm">
-            <div class="detail-grid">
-              <label>Nombre<input class="input left" name="nombre" value="${api.sanitizeText(currentUser.nombre || "")}" /></label>
-              <label>Apellido<input class="input left" name="apellido" value="${api.sanitizeText(currentUser.apellido || "")}" /></label>
-              <label>Cedula<input class="input left" value="${api.sanitizeText(currentUser.cedula || "")}" disabled /></label>
-              <label>Correo<input class="input left" value="${api.sanitizeText(currentUser.correo_electronico || "")}" disabled /></label>
-            </div>
-            <h2>Ruta asignada</h2>
-            <div class="route-card">
-              <strong>Ruta David Centro</strong>
-              <span>Lunes a sabado - 6:30 PM</span>
-              <p>La edicion de rutas queda simulada por ahora. El perfil ya guarda nombre y apellido en Supabase.</p>
-              <select class="input left" name="ruta">
-                <option>Ruta David Centro</option>
-                <option>Ruta Las Lomas</option>
-                <option>Ruta San Mateo</option>
-              </select>
-            </div>
-            <button class="primary-button" type="submit">Guardar cambios</button>
-          </form>
+          <div class="detail-grid">
+            <label>Nombre<input class="input left" value="${api.sanitizeText(currentUser.nombre || "")}" /></label>
+            <label>Apellido<input class="input left" value="${api.sanitizeText(currentUser.apellido || "")}" /></label>
+            <label>Cedula<input class="input left" value="${api.sanitizeText(currentUser.cedula || "")}" disabled /></label>
+            <label>Correo<input class="input left" value="${api.sanitizeText(currentUser.correo_electronico || "")}" disabled /></label>
+          </div>
+          <h2>Ruta asignada</h2>
+          <div class="route-card">
+            <strong>Ruta David Centro</strong>
+            <span>Lunes a sabado - 6:30 PM</span>
+            <p>Edicion visual lista para conectar a un endpoint de rutas cuando definas reglas operativas.</p>
+          </div>
+          <button class="primary-button" type="button">Guardar cambios simulados</button>
         </section>
       </section>
     </main>
   `);
   wireShellActions();
-  const form = app.querySelector("#profileForm");
-  const alert = app.querySelector("[data-alert]");
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const button = form.querySelector("[type='submit']");
-    button.disabled = true;
-    button.textContent = "Guardando...";
-    try {
-      const payload = await api.updateProfile({
-        nombre: fieldValue(form, "nombre"),
-        apellido: fieldValue(form, "apellido"),
-      });
-      currentUser = payload.user;
-      setAlert(alert, payload.message, "");
-    } catch (error) {
-      setAlert(alert, error.message);
-    } finally {
-      button.disabled = false;
-      button.textContent = "Guardar cambios";
-    }
-  });
 }
 
 async function renderPayments() {

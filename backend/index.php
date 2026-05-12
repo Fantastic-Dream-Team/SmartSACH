@@ -414,35 +414,6 @@ try {
         json_response(['ok' => true, 'message' => 'Si el correo existe, recibirás instrucciones para recuperar tu contraseña.']);
     }
 
-    if ($method === 'POST' && $path === 'api/profile') {
-        require_csrf();
-        $user = require_auth();
-        $data = input();
-        $nombre = clean_string($data['nombre'] ?? '', 80);
-        $apellido = clean_string($data['apellido'] ?? '', 80);
-
-        $errors = [];
-        if ($nombre === '') {
-            $errors['nombre'] = 'El nombre es obligatorio.';
-        }
-        if ($apellido === '') {
-            $errors['apellido'] = 'El apellido es obligatorio.';
-        }
-        if ($errors) {
-            json_response(['ok' => false, 'message' => 'Revisa los campos marcados.', 'errors' => $errors], 422);
-        }
-
-        $stmt = db()->prepare('UPDATE usuarios SET nombre = :nombre, apellido = :apellido WHERE usuario_id = :id');
-        $stmt->execute([
-            'nombre' => $nombre,
-            'apellido' => $apellido,
-            'id' => $user['usuario_id'],
-        ]);
-
-        $updated = require_auth();
-        json_response(['ok' => true, 'message' => 'Perfil actualizado correctamente.', 'user' => $updated]);
-    }
-
     if ($method === 'GET' && $path === 'api/paz-y-salvo') {
         require_auth();
         $stmt = db()->query('SELECT * FROM vista_paz_y_salvo_usuarios');

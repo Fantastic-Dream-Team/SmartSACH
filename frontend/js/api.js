@@ -90,7 +90,6 @@
     me: () => request("/api/auth/me"),
     logout: () => request("/api/auth/logout", { method: "POST", body: {} }),
     forgotPassword: (body) => request("/api/auth/forgot-password", { method: "POST", body }),
-    updateProfile: (body) => request("/api/profile", { method: "POST", body }),
     pazYSalvo: () => request("/api/paz-y-salvo"),
   };
 })();
