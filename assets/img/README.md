@@ -1,15 +1,15 @@
 # Logos SmartSACH
 
-Guarda aqui los logos enviados con estos nombres exactos:
+Logos activos del proyecto:
 
 ```text
-logo-smartsach.png
-logo-mark.png
+sachlogo.png
+logoblanco.png
 ```
 
 Uso esperado:
 
-- `logo-smartsach.png`: logo horizontal con texto SACH/SmartSACH para login, navbar y registro.
-- `logo-mark.png`: isotipo circular blanco para el panel verde del login.
+- `sachlogo.png`: logo horizontal con texto SACH para login, navbar y registro.
+- `logoblanco.png`: isotipo blanco para el panel verde del login.
 
 El frontend ya carga automaticamente estos archivos desde `frontend/js/app.js`.

@@ -56,8 +56,8 @@ http://localhost:8000/frontend/
 Guarda los logos del proyecto en `assets/img/` con estos nombres:
 
 ```text
-assets/img/logo-smartsach.png
-assets/img/logo-mark.png
+assets/img/sachlogo.png
+assets/img/logoblanco.png
 ```
 
 El frontend los usa automaticamente. Si no existen, muestra un fallback basico para que la pagina no se rompa.
