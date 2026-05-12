@@ -21,6 +21,13 @@ ALTER TABLE usuarios
     ADD COLUMN IF NOT EXISTS estado_verificacion VARCHAR(20) DEFAULT 'pendiente',
     ADD COLUMN IF NOT EXISTS fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 
+ALTER TABLE usuarios
+    ALTER COLUMN nombre TYPE VARCHAR(80),
+    ALTER COLUMN apellido TYPE VARCHAR(80),
+    ALTER COLUMN cedula TYPE VARCHAR(30),
+    ALTER COLUMN correo_electronico TYPE VARCHAR(160),
+    ALTER COLUMN password TYPE VARCHAR(255);
+
 DO $$
 BEGIN
     IF NOT EXISTS (
@@ -54,6 +61,11 @@ ALTER TABLE ubicaciones_servicio
     ADD COLUMN IF NOT EXISTS descripcion_direccion TEXT,
     ADD COLUMN IF NOT EXISTS foto_url VARCHAR(255),
     ADD COLUMN IF NOT EXISTS fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+
+ALTER TABLE ubicaciones_servicio
+    ALTER COLUMN nombre_referencia TYPE VARCHAR(255),
+    ALTER COLUMN descripcion_direccion TYPE TEXT,
+    ALTER COLUMN foto_url TYPE VARCHAR(255);
 
 CREATE TABLE IF NOT EXISTS rutas (
     ruta_id SERIAL PRIMARY KEY,
