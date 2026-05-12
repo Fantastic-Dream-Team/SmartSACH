@@ -1,0 +1,11 @@
+**/node_modules
+**/.env
+**/.env.*
+!**/.env.example
+.git
+.gitignore
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+Pruebas XAMPP
+CRITERIO DEL PARCIAL 1.docx.pdf
