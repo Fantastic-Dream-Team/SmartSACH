@@ -1,0 +1,23 @@
+body {
+  min-height: 100vh;
+}
+
+.auth-page {
+  align-items: center;
+  background: #f8f9fa;
+  display: flex;
+}
+
+.auth-shell {
+  display: flex;
+  justify-content: center;
+}
+
+.auth-card {
+  max-width: 400px;
+  width: 100%;
+}
+
+.form-card {
+  max-width: 520px;
+}
