@@ -86,12 +86,22 @@ Variables de entorno en Render:
 
 ```text
 APP_ORIGIN=https://TU-SERVICIO.onrender.com
-DB_HOST=db.vwjbilxawmjmlwprthyg.supabase.co
+DB_HOST=HOST_DEL_SESSION_POOLER_DE_SUPABASE
 DB_PORT=5432
 DB_NAME=postgres
-DB_USER=postgres
+DB_USER=postgres.PROJECT_REF
 DB_PASS=tu_password_de_supabase
 DB_SSLMODE=require
+```
+
+Importante para Render: no uses el host directo `db.PROJECT_REF.supabase.co`, porque Supabase lo resuelve por IPv6 y Render no soporta esa salida. En Supabase entra a **Connect -> Session pooler** y copia esos datos:
+
+```text
+Host: algo como aws-0-us-east-1.pooler.supabase.com
+Port: 5432
+Database: postgres
+User: postgres.PROJECT_REF
+Password: tu password
 ```
 
 No subas `backend/.env` a GitHub. Las credenciales deben quedar solo en Environment Variables de Render.
