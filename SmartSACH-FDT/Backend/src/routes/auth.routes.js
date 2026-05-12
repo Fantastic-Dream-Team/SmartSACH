@@ -20,10 +20,11 @@ function createToken(user) {
 }
 
 router.post("/register", async (req, res, next) => {
-  const db = requireDatabase();
-  const client = await db.connect();
+  let client;
 
   try {
+    const db = requireDatabase();
+    client = await db.connect();
     const { nombre, apellido, cedula, correo, password, descripcion } = req.body;
 
     if (!nombre || !apellido || !cedula || !correo || !password) {
@@ -59,14 +60,14 @@ router.post("/register", async (req, res, next) => {
       token: createToken(user),
     });
   } catch (error) {
-    await client.query("ROLLBACK").catch(() => {});
+    await client?.query("ROLLBACK").catch(() => {});
     if (error.code === "23505") {
       error.statusCode = 409;
       error.message = "Los datos ya estan registrados.";
     }
     next(error);
   } finally {
-    client.release();
+    client?.release();
   }
 });
 
