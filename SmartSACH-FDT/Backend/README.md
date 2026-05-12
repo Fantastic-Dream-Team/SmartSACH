@@ -19,8 +19,11 @@ Configura estas variables en Render:
 - `NODE_ENV=production`
 - `PORT`: Render la asigna automaticamente.
 - `CORS_ORIGIN`: URL del frontend desplegado.
-- `SUPABASE_URL`: URL del proyecto de Supabase.
-- `SUPABASE_ANON_KEY`: clave publica anonima de Supabase.
+- `SUPABASE_URL`: URL del proyecto en Supabase, en `Project Settings > API > Project URL`.
+- `SUPABASE_ANON_KEY`: clave `anon public` en `Project Settings > API > Project API keys`.
+- `JWT_SECRET`: valor largo y privado para firmar sesiones.
+
+Si ya tienes variables creadas como `VITE_SUPABASE_URL` o `VITE_SUPABASE_ANON_KEY`, el backend tambien las reconoce.
 
 ## Endpoints iniciales
 

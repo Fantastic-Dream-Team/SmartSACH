@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { hasSupabaseConfig, supabase } from "../config/supabase.js";
+import { hasSupabaseConfig, missingSupabaseConfig, supabase } from "../config/supabase.js";
 
 const router = Router();
 
@@ -10,7 +10,8 @@ router.get("/", async (_req, res, next) => {
       res.json({
         api: "ok",
         database: "sin_configurar",
-        message: "Agrega SUPABASE_URL y SUPABASE_ANON_KEY para validar la base de datos.",
+        missing: missingSupabaseConfig,
+        message: "Agrega las variables faltantes en Render para validar la base de datos.",
       });
       return;
     }
