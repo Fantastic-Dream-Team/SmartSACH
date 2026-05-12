@@ -27,8 +27,7 @@ function asset(path) {
 function brandMark() {
   return `
     <span class="brand-mark" aria-hidden="true">
-      <img src="${asset("logoblanco.png")}" alt="" onerror="this.hidden=true;this.nextElementSibling.hidden=false" />
-      <svg viewBox="0 0 100 100" hidden>
+      <svg viewBox="0 0 100 100">
         <circle cx="50" cy="50" r="50" fill="currentColor" opacity="0.04"></circle>
         <path d="M3 61 C20 47, 33 49, 50 63 C66 76, 82 71, 97 58" fill="none" stroke="currentColor" stroke-width="4"></path>
         <path d="M0 72 C24 58, 34 67, 51 76 C67 84, 79 73, 100 70" fill="none" stroke="currentColor" stroke-width="4"></path>
@@ -41,14 +40,7 @@ function brandMark() {
 function brandLockup() {
   return `
     <a class="brand-lockup" href="#/home" aria-label="SmartSACH inicio">
-      <img class="brand-logo-image" src="${asset("sachlogo.png")}" alt="SmartSACH" onerror="this.hidden=true;this.nextElementSibling.hidden=false" />
-      <span class="brand-fallback" hidden>
-        ${brandMark()}
-        <span class="brand-word">
-          <strong>smartSACH</strong>
-          <small>SERVICIOS AMBIENTALES DE CHIRIQUI</small>
-        </span>
-      </span>
+      <img class="brand-logo-image" src="${asset("sachlogo.png")}" alt="SmartSACH" />
     </a>
   `;
 }
@@ -306,20 +298,46 @@ function registerField(label, name, placeholder, type = "text") {
 
 function shell(active, body, isPublic = false) {
   return `
-    <section class="app-shell">
-      <header class="topbar">
-        ${brandLockup()}
-        <nav class="topnav">
-          <a class="${active === "home" ? "active" : ""}" href="#/home">Home</a>
+    <section class="wire-shell">
+      <header class="wire-topbar">
+        <nav class="wire-nav">
+          <a class="${active === "home" ? "active" : ""}" href="#/home">Inicio</a>
+          <a class="${active === "perfil" ? "active" : ""}" href="${currentUser ? "#/perfil" : "#/registro"}">Perfil</a>
+          <a class="${active === "pagos" ? "active" : ""}" href="${currentUser ? "#/pagos" : "#/registro"}">Pagos</a>
           <a class="${active === "nosotros" ? "active" : ""}" href="#/nosotros">Nosotros</a>
-          ${currentUser ? `<a class="${active === "perfil" ? "active" : ""}" href="#/perfil">Perfil</a><a class="${active === "pagos" ? "active" : ""}" href="#/pagos">Pagos</a>` : ""}
+          <a class="${active === "ayuda" ? "active" : ""}" href="#/ayuda">Ayuda</a>
         </nav>
-        <div class="top-actions">
-          ${currentUser ? `<button class="profile-chip" type="button" data-profile>${api.sanitizeText(currentUser.nombre || "Perfil")}</button><button class="secondary-button" type="button" data-logout>Salir</button>` : `<a class="secondary-button" href="#/login">Ingresar</a><a class="primary-button" href="#/registro">Crear cuenta</a>`}
+        <div class="wire-session">
+          ${currentUser ? `<button type="button" data-logout>Salir</button>` : `<a href="#/login">Ingresar</a>`}
         </div>
       </header>
       ${body}
+      ${wireFooter()}
     </section>
+  `;
+}
+
+function wireFooter() {
+  return `
+    <footer class="wire-footer">
+      <div class="footer-brand">
+        <span>SACH</span>
+        ${brandMark()}
+        <small>Servicios Ambientales de Chiriqui</small>
+      </div>
+      <div class="footer-contact">
+        <strong>Contactenos</strong>
+        <span>1828-23423</span>
+      </div>
+      <div class="footer-contact">
+        <strong>David centro, frente a hotel levy</strong>
+        <span>+507 5533-2344</span>
+      </div>
+      <div class="footer-contact">
+        <strong>Sachchiriqui</strong>
+        <span>@sachchiriqui</span>
+      </div>
+    </footer>
   `;
 }
 
@@ -328,53 +346,82 @@ async function renderHome() {
   await hydrateUser(false);
   const isPublic = !currentUser;
   app.innerHTML = shell("home", `
-    <main class="home-layout">
-      <section class="hero-map">
-        <div id="routeMap"></div>
-        <div class="route-overlay">
-          <span class="status-dot"></span>
-          <strong>Ruta David Centro</strong>
-          <small>${isPublic ? "Simulacion publica del recorrido" : "Camion asignado a tu zona"}</small>
+    <main class="wire-page">
+      ${isPublic ? publicIntro() : userPanel()}
+      <section class="wire-routes">
+        <h2>RUTAS</h2>
+        <p class="route-zone">David Este</p>
+        <div class="routes-canvas">
+          ${routeBubble("David, altos de las moras calle #2, casa7", "left")}
+          ${routeBubble("David, altos de las moras calle #2, casa7", "right")}
+          ${routeBubble("nuevo horizonte al lado de la cancha, casa#7", "center")}
         </div>
-      </section>
-      <section class="home-grid">
-        <article class="home-panel span-2">
-          <h1>${isPublic ? "Servicio de recoleccion en tiempo real" : `Bienvenido, ${api.sanitizeText(currentUser.nombre)}`}</h1>
-          <p>${isPublic ? "Consulta informacion general de rutas, horarios y servicios. Crea una cuenta para asociar tu ubicacion, ver estado de pago y recibir avisos personalizados." : "Tu panel concentra ruta asignada, estado de servicio, perfil y pagos simulados para validar el flujo completo."}</p>
-          <div class="quick-actions">
-            ${isPublic ? `<a class="primary-button" href="#/registro">Crear cuenta</a><a class="secondary-button" href="#/nosotros">Acerca de nosotros</a>` : `<a class="primary-button" href="#/perfil">Ver perfil</a><a class="secondary-button" href="#/pagos">Ver pagos</a>`}
-          </div>
-        </article>
-        <article class="home-panel metric"><span>Proxima recoleccion</span><strong>Hoy 6:30 PM</strong><small>Horario estimado</small></article>
-        <article class="home-panel metric"><span>Camion</span><strong>SACH-04</strong><small>En recorrido</small></article>
-        <article class="home-panel">
-          <h2>Avisos</h2>
-          <p>La ruta puede variar por clima, trafico o mantenimiento. Mantendremos esta seccion actualizada.</p>
-        </article>
-        <article class="home-panel">
-          <h2>Servicios</h2>
-          <p>Recoleccion residencial, rutas programadas, notificaciones y consulta de paz y salvo.</p>
-        </article>
+        ${currentUser ? `<button class="wire-link-button" type="button" data-edit-routes>Modificar rutas</button>` : `<a class="wire-link-button" href="#/registro">Crear cuenta para modificar rutas</a>`}
       </section>
     </main>
   `, isPublic);
   wireShellActions();
-  setupRouteMap();
+  app.querySelector("[data-edit-routes]")?.addEventListener("click", () => navigate("/perfil"));
+}
+
+function publicIntro() {
+  return `
+    <section class="wire-user-panel public">
+      <div class="public-logo">${brandLockup()}</div>
+      <div>
+        <h1>Consulta rutas de recoleccion</h1>
+        <p>Explora informacion general del servicio, rutas principales y avisos. Crea una cuenta para registrar tu ubicacion, editar rutas y consultar pagos.</p>
+        <div class="wire-actions">
+          <a class="wire-link-button" href="#/registro">Crear cuenta</a>
+          <a class="wire-link-button secondary" href="#/nosotros">Acerca de nosotros</a>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function userPanel() {
+  return `
+    <h1 class="wire-title">Panel de usuario</h1>
+    <section class="wire-user-panel">
+      <div class="wire-photo">
+        <div class="photo-placeholder">${api.sanitizeText((currentUser.nombre || "U").charAt(0))}</div>
+        <button type="button" data-change-photo>Cambiar imagen</button>
+      </div>
+      <div class="wire-user-data">
+        <p><strong>Nombre:</strong><span>${api.sanitizeText(currentUser.nombre || "-")}</span></p>
+        <p><strong>Apellido</strong><span>${api.sanitizeText(currentUser.apellido || "-")}</span></p>
+        <p><strong>Correo electronico</strong><span>${api.sanitizeText(currentUser.correo_electronico || "-")}</span></p>
+      </div>
+      <a class="wire-edit-link" href="#/perfil">Modificar datos</a>
+    </section>
+  `;
+}
+
+function routeBubble(text, position) {
+  return `
+    <article class="route-node ${position}">
+      <div class="route-card-wire">${api.sanitizeText(text)}</div>
+      <span class="route-icon" aria-hidden="true">
+        <span></span><span></span><i></i>
+      </span>
+      ${position === "center" ? `<small>Algarrobos</small>` : ""}
+    </article>
+  `;
 }
 
 async function renderProfile() {
   cleanupMap();
   if (!(await hydrateUser(true))) return;
   app.innerHTML = shell("perfil", `
-    <main class="dashboard-content">
-      <section class="profile-layout">
-        <aside class="profile-card">
-          <div class="avatar">${api.sanitizeText((currentUser.nombre || "U").charAt(0))}</div>
-          <h1>${api.sanitizeText(currentUser.nombre)} ${api.sanitizeText(currentUser.apellido || "")}</h1>
-          <p>${api.sanitizeText(currentUser.correo_electronico || "")}</p>
-          <span class="badge">${api.sanitizeText(currentUser.estado_verificacion || "pendiente")}</span>
-        </aside>
-        <section class="data-panel no-margin">
+    <main class="wire-page">
+      <h1 class="wire-title">Perfil</h1>
+      <section class="wire-user-panel profile-editor">
+        <div class="wire-photo">
+          <div class="photo-placeholder">${api.sanitizeText((currentUser.nombre || "U").charAt(0))}</div>
+          <button type="button" data-change-photo>Cambiar imagen</button>
+        </div>
+        <section class="profile-form-panel">
           <h2>Datos de cuenta</h2>
           <div data-alert></div>
           <form id="profileForm">
@@ -429,48 +476,77 @@ async function renderPayments() {
   cleanupMap();
   if (!(await hydrateUser(true))) return;
   app.innerHTML = shell("pagos", `
-    <main class="dashboard-content">
-      <section class="payment-layout">
-        <article class="home-panel">
-          <span>Estado de pago</span>
-          <strong class="payment-state">Al dia</strong>
-          <p>Pago simulado para pruebas del sistema. No se procesa dinero real.</p>
+    <main class="wire-page">
+      <h1 class="wire-title">Pagos</h1>
+      <section class="payments-wire">
+        <article class="pay-summary">
+          <span>Estado actual</span>
+          <strong data-pay-status>Al dia</strong>
+          <p>Suscripcion residencial vinculada a Ruta David Centro.</p>
         </article>
-        <article class="home-panel">
-          <span>Proximo vencimiento</span>
-          <strong>30 dias</strong>
-          <p>Suscripcion residencial SmartSACH.</p>
+        <article class="pay-summary">
+          <span>Monto del mes</span>
+          <strong>B/. 12.00</strong>
+          <p>Simulacion para validar el flujo del sistema.</p>
         </article>
-        <section class="data-panel no-margin span-2">
-          <h2>Simular pago</h2>
+        <section class="pay-panel">
+          <h2>Procesar pago simulado</h2>
           <form class="payment-form">
-            <input class="input left" value="B/. 12.00" disabled />
-            <select class="input left"><option>Tarjeta terminada en 4242</option><option>Transferencia bancaria</option></select>
+            <label>Metodo
+              <select class="input left">
+                <option>Tarjeta terminada en 4242</option>
+                <option>Transferencia bancaria</option>
+                <option>Efectivo en oficina</option>
+              </select>
+            </label>
+            <label>Referencia
+              <input class="input left" value="SIM-${Date.now().toString().slice(-6)}" disabled />
+            </label>
             <button class="primary-button" type="button" data-pay>Procesar pago simulado</button>
           </form>
-          <div class="timeline">
-            <div><strong>Pago recibido</strong><span>Simulado - mes actual</span></div>
-            <div><strong>Factura generada</strong><span>Disponible en pruebas</span></div>
+          <div class="timeline" data-timeline>
+            <div><strong>Factura emitida</strong><span>Pendiente de confirmacion</span></div>
           </div>
         </section>
       </section>
     </main>
   `);
   wireShellActions();
-  app.querySelector("[data-pay]").addEventListener("click", () => alert("Pago simulado registrado correctamente."));
+  app.querySelector("[data-pay]").addEventListener("click", () => {
+    app.querySelector("[data-pay-status]").textContent = "Pagado";
+    app.querySelector("[data-timeline]").insertAdjacentHTML("afterbegin", `<div><strong>Pago recibido</strong><span>${new Date().toLocaleString("es-PA")}</span></div>`);
+  });
 }
 
 function renderAbout() {
   cleanupMap();
   app.innerHTML = shell("nosotros", `
-    <main class="about-page">
-      <section>
+    <main class="wire-page">
+      <section class="about-page">
         <h1>Acerca de SmartSACH</h1>
         <p>SmartSACH es una plataforma para acercar a la comunidad de Chiriqui a informacion clara sobre recoleccion, rutas, avisos y pagos del servicio ambiental.</p>
         <div class="about-grid">
           <article><strong>Mision</strong><span>Organizar informacion ambiental y mejorar la comunicacion con usuarios.</span></article>
           <article><strong>Rutas</strong><span>Visualizacion de recorridos, horarios y estado del camion.</span></article>
           <article><strong>Usuarios</strong><span>Registro con ubicacion exacta para mejorar la asignacion del servicio.</span></article>
+        </div>
+      </section>
+    </main>
+  `, !currentUser);
+  wireShellActions();
+}
+
+function renderHelp() {
+  cleanupMap();
+  app.innerHTML = shell("ayuda", `
+    <main class="wire-page">
+      <section class="about-page">
+        <h1>Ayuda</h1>
+        <p>Encuentra respuestas rapidas para usar la plataforma y validar el servicio.</p>
+        <div class="about-grid">
+          <article><strong>Crear cuenta</strong><span>Registra tus datos, selecciona tu ubicacion en el mapa y guarda una descripcion clara.</span></article>
+          <article><strong>Rutas</strong><span>Consulta la ruta asignada y solicita modificaciones desde tu perfil.</span></article>
+          <article><strong>Pagos</strong><span>El modulo actual simula pagos para pruebas; no procesa dinero real.</span></article>
         </div>
       </section>
     </main>
@@ -493,6 +569,9 @@ async function hydrateUser(required) {
 
 function wireShellActions() {
   app.querySelector("[data-profile]")?.addEventListener("click", () => navigate("/perfil"));
+  app.querySelectorAll("[data-change-photo]").forEach((button) => {
+    button.addEventListener("click", () => alert("Cambio de imagen simulado. Se puede conectar a carga de archivos cuando se defina almacenamiento."));
+  });
   app.querySelector("[data-logout]")?.addEventListener("click", async () => {
     await api.logout().catch(() => null);
     currentUser = null;
@@ -576,6 +655,7 @@ async function router() {
   else if (route === "/perfil") await renderProfile();
   else if (route === "/pagos") await renderPayments();
   else if (route === "/nosotros") renderAbout();
+  else if (route === "/ayuda") renderHelp();
   else navigate("/login");
 }
 
