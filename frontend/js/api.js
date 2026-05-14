@@ -90,6 +90,14 @@
     me: () => request("/api/auth/me"),
     logout: () => request("/api/auth/logout", { method: "POST", body: {} }),
     forgotPassword: (body) => request("/api/auth/forgot-password", { method: "POST", body }),
+    dashboardOverview: () => request("/api/dashboard/overview"),
+    profile: () => request("/api/profile"),
+    profileUpdate: (body) => request("/api/profile/update", { method: "POST", body }),
+    createLocation: (body) => request("/api/locations/create", { method: "POST", body }),
+    updateLocation: (id, body) => request(`/api/locations/${id}/update`, { method: "POST", body }),
+    paymentsSummary: () => request("/api/payments/summary"),
+    paySubscription: (body) => request("/api/payments/pay", { method: "POST", body }),
+    createReport: (body) => request("/api/reports/create", { method: "POST", body }),
     pazYSalvo: () => request("/api/paz-y-salvo"),
   };
 })();

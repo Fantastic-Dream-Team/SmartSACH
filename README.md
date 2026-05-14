@@ -1,35 +1,50 @@
 # SmartSACH
 
-Frontend responsive y API PHP para autenticación, registro con mapa, sesiones seguras y consulta de paz y salvo.
+Aplicación web para gestión de recolección de basura en Chiriquí:
+- Registro y login de usuarios.
+- Dashboard con rutas activas, mapa y estado financiero.
+- Perfil con múltiples ubicaciones/rutas por usuario.
+- Pagos con trazabilidad e historial.
+- Reporte de incidencias del servicio.
+- Sección Nosotros + contacto por WhatsApp.
 
-## Requisitos
+## Estructura
 
-- PHP 8+
-- PostgreSQL
-- Extensión PHP `pdo_pgsql`
-- Composer ya está instalado en `backend/vendor`
+- `frontend/`: SPA (HTML/CSS/JS).
+- `backend/`: API PHP (sesiones + CSRF + PostgreSQL/Supabase).
+- `basededatos/`: scripts SQL para Supabase.
+- `assets/`: logos e imágenes del sitio.
 
-## Base de datos
+## Base de datos (Supabase)
 
-Ejecuta los scripts en PostgreSQL:
+Ejecuta en SQL Editor:
 
 ```sql
-\i basededatos/postgretables.sql
-\i basededatos/postgretrigers.sql
+-- contenido de:
+basededatos/supabase_migration_auth.sql
 ```
 
-Copia `backend/.env.example` a `backend/.env` y ajusta tus credenciales:
+Ese script es idempotente y crea el esquema extendido completo.
 
-```text
+## Variables de entorno backend
+
+Crea `backend/.env`:
+
+```env
+APP_ORIGIN=http://localhost:8000
+APP_DEBUG=true
+
 DB_HOST=localhost
 DB_PORT=5432
-DB_NAME=sistema_recoleccion
+DB_NAME=postgres
 DB_USER=postgres
-DB_PASS=tu_clave
-APP_ORIGIN=http://localhost:8000
+DB_PASS=tu_password
+DB_SSLMODE=prefer
 ```
 
-## Ejecutar
+Para Render + Supabase, usa Session Pooler IPv4 y `DB_SSLMODE=require`.
+
+## Ejecutar local
 
 Desde la raíz del proyecto:
 
@@ -37,88 +52,14 @@ Desde la raíz del proyecto:
 php -S localhost:8000 -t .
 ```
 
-Abre:
+Abrir:
 
 ```text
 http://localhost:8000/frontend/
 ```
 
-La API queda disponible en:
+API health:
 
 ```text
 http://localhost:8000/backend/index.php/api/health
 ```
-
-Diagnostico de base de datos:
-
-```text
-http://localhost:8000/backend/index.php/api/db-check
-```
-
-## Deploy en Render con Supabase
-
-Sube el repositorio completo a GitHub. En Render crea un **Web Service** conectado al repo y usa Docker. Render debe detectar el `Dockerfile` de la raíz; si te pide ruta, usa:
-
-```text
-./Dockerfile
-```
-
-Variables de entorno en Render:
-
-```text
-APP_ORIGIN=https://TU-SERVICIO.onrender.com
-DB_HOST=HOST_DEL_SESSION_POOLER_DE_SUPABASE
-DB_PORT=5432
-DB_NAME=postgres
-DB_USER=postgres.PROJECT_REF
-DB_PASS=tu_password_de_supabase
-DB_SSLMODE=require
-```
-
-Importante para Render: no uses el host directo `db.PROJECT_REF.supabase.co`, porque Supabase lo resuelve por IPv6 y Render no soporta esa salida. En Supabase entra a **Connect -> Session pooler** y copia esos datos:
-
-```text
-Host: algo como aws-0-us-east-1.pooler.supabase.com
-Port: 5432
-Database: postgres
-User: postgres.PROJECT_REF
-Password: tu password
-```
-
-No subas `backend/.env` a GitHub. Las credenciales deben quedar solo en Environment Variables de Render.
-
-Al desplegar, abre:
-
-```text
-https://TU-SERVICIO.onrender.com/
-```
-
-La página raíz redirige al frontend y la API queda en:
-
-```text
-https://TU-SERVICIO.onrender.com/backend/index.php/api/health
-```
-
-Diagnostico de base de datos en Render:
-
-```text
-https://TU-SERVICIO.onrender.com/backend/index.php/api/db-check
-```
-
-Tambien funciona como:
-
-```text
-https://TU-SERVICIO.onrender.com/backend/api/db-check
-```
-
-## Funcionalidades
-
-- Login con correo y contraseña.
-- Registro con validación completa y contraseña hasheada.
-- Sesión segura con cookie `HttpOnly` y token CSRF.
-- Protección básica contra fuerza bruta por sesión/IP.
-- Consultas preparadas contra SQL Injection.
-- Sanitización y escape contra XSS en frontend y backend.
-- Recuperación de contraseña preparada para conectar un proveedor de correo.
-- Mapa Leaflet/OpenStreetMap con búsqueda, marcador arrastrable y geolocalización.
-- Dashboard privado con datos del usuario y consulta de paz y salvo.
