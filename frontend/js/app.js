@@ -1,5 +1,6 @@
 const app = document.querySelector("#app");
 const api = window.SmartSachAPI;
+const BUILD_TAG = "build-2026-05-13-r1";
 
 let currentUser = null;
 let registerMap = null;
@@ -195,6 +196,7 @@ function renderLogin() {
               </div>
               <p class="switch-line">No tienes cuenta? <button class="link-button" type="button" data-register>Crear cuenta</button></p>
             </form>
+            <p class="build-tag">${BUILD_TAG}</p>
           </div>
         </section>
       </div>
@@ -283,6 +285,7 @@ function renderPublicHome() {
       </section>
 
       ${sharedFooter()}
+      <p class="build-tag public">${BUILD_TAG}</p>
     </section>
   `;
   app.querySelector("[data-login]").addEventListener("click", () => navigate("/login"));

@@ -296,7 +296,12 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 try {
     if ($method === 'GET' && in_array($path, ['', 'api/health'], true)) {
-        json_response(['ok' => true, 'message' => 'SmartSACH API is running', 'csrfToken' => csrf_token()]);
+        json_response([
+            'ok' => true,
+            'message' => 'SmartSACH API is running',
+            'build' => getenv('APP_BUILD') ?: 'build-2026-05-13-r1',
+            'csrfToken' => csrf_token(),
+        ]);
     }
 
     if ($method === 'GET' && $path === 'api/auth/csrf') {

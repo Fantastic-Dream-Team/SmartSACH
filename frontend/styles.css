@@ -193,6 +193,17 @@ select:focus {
   text-align: center;
 }
 
+.build-tag {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #8a9196;
+}
+
+.build-tag.public {
+  margin-bottom: 1rem;
+}
+
 .field-error {
   min-height: 1rem;
   font-size: 0.78rem;
