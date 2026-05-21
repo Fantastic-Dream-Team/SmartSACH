@@ -1,0 +1,4 @@
+.git
+backend/.env
+backend/storage/sessions
+*.log
