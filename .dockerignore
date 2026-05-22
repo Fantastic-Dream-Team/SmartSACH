@@ -2,3 +2,5 @@
 backend/.env
 backend/storage/sessions
 *.log
+frontend/react-app/node_modules
+frontend/react-app/dist
