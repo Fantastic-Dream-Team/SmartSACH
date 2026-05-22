@@ -22,12 +22,22 @@ session_set_cookie_params([
 ]);
 session_start();
 
-$allowedOrigin = getenv('APP_ORIGIN') ?: ($_ENV['APP_ORIGIN'] ?? '*');
+$configuredOrigin = trim((string) (getenv('APP_ORIGIN') ?: ($_ENV['APP_ORIGIN'] ?? '')));
+$requestOrigin = trim((string) ($_SERVER['HTTP_ORIGIN'] ?? ''));
+if ($configuredOrigin !== '') {
+    $allowedOrigin = $configuredOrigin;
+} elseif ($requestOrigin !== '') {
+    $allowedOrigin = $requestOrigin;
+} else {
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $allowedOrigin = (is_secure_request() ? 'https' : 'http') . '://' . $host;
+}
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Access-Control-Allow-Origin: ' . $allowedOrigin);
+header('Vary: Origin');
 header('Access-Control-Allow-Credentials: true');
 header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');

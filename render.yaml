@@ -3,10 +3,17 @@ services:
     name: smartsach
     runtime: docker
     dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /backend/index.php/api/health
+    autoDeploy: true
     plan: free
     envVars:
       - key: APP_ORIGIN
         sync: false
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_BUILD
+        value: "build-react-render"
       - key: DB_HOST
         sync: false
       - key: DB_PORT
