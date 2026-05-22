@@ -11,6 +11,7 @@ Aplicación web para gestión de recolección de basura en Chiriquí:
 ## Estructura
 
 - `frontend/`: SPA (HTML/CSS/JS).
+- `frontend/react-app/`: nueva base React + Vite (migracion gradual).
 - `backend/`: API PHP (sesiones + CSRF + PostgreSQL/Supabase).
 - `basededatos/`: scripts SQL para Supabase.
 - `assets/`: logos e imágenes del sitio.
@@ -62,4 +63,26 @@ API health:
 
 ```text
 http://localhost:8000/backend/index.php/api/health
+```
+
+## Frontend React (migracion gradual)
+
+Desde la raiz del proyecto:
+
+```bash
+cd frontend/react-app
+npm install
+npm run dev
+```
+
+Build de produccion:
+
+```bash
+npm run build
+```
+
+Variable opcional:
+
+```env
+VITE_API_BASE_URL=http://localhost:8000/backend/index.php
 ```

@@ -56,10 +56,13 @@ function database_error(PDOException $e): void
     error_log('[SmartSACH DB] ' . $e->getMessage());
     $payload = ['ok' => false, 'message' => 'No se pudo completar la operación en la base de datos.'];
     $message = $e->getMessage();
+    $sqlState = (string) $e->getCode();
     if (str_contains($message, 'relation') && str_contains($message, 'does not exist')) {
         $payload['message'] = 'Falta una tabla en la base de datos. Ejecuta la migración de Supabase.';
     } elseif (str_contains($message, 'column') && str_contains($message, 'does not exist')) {
         $payload['message'] = 'Falta una columna en la base de datos. Revisa la migración de Supabase.';
+    } elseif ($sqlState === '23505') {
+        $payload['message'] = 'Se detecto un conflicto de datos unicos. Revisa correo, cedula o secuencias de IDs.';
     } elseif (str_contains($message, 'password authentication failed')) {
         $payload['message'] = 'Las credenciales de conexión a Supabase no son correctas.';
     } elseif (str_contains($message, 'Network is unreachable')) {
@@ -232,6 +235,130 @@ function fetch_default_route_id(PDO $pdo): int
     return (int) $insert->fetchColumn();
 }
 
+function reset_table_sequence(PDO $pdo, string $table, string $column): ?array
+{
+    $allowed = [
+        'usuarios' => 'usuario_id',
+        'ubicaciones_servicio' => 'ubicacion_id',
+        'suscripciones' => 'suscripcion_id',
+        'rutas' => 'ruta_id',
+        'pagos' => 'pago_id',
+        'reportes_servicio' => 'reporte_id',
+        'camiones_rastreo' => 'camion_id',
+        'rutas_puntos' => 'punto_id',
+    ];
+    if (!isset($allowed[$table]) || $allowed[$table] !== $column) {
+        return null;
+    }
+
+    $sequenceStmt = $pdo->prepare('SELECT pg_get_serial_sequence(:table_name, :column_name) AS sequence_name');
+    $sequenceStmt->execute([
+        'table_name' => 'public.' . $table,
+        'column_name' => $column,
+    ]);
+    $sequenceName = (string) ($sequenceStmt->fetchColumn() ?: '');
+    if ($sequenceName === '') {
+        return null;
+    }
+
+    $maxStmt = $pdo->query(sprintf('SELECT COALESCE(MAX(%s), 0) FROM %s', $column, $table));
+    $maxValue = (int) ($maxStmt->fetchColumn() ?: 0);
+    $nextValue = $maxValue + 1;
+    $seqLiteral = $pdo->quote($sequenceName);
+    $pdo->exec(sprintf('SELECT setval(%s, %d, false)', $seqLiteral, $nextValue));
+
+    return [
+        'table' => $table,
+        'column' => $column,
+        'sequence' => $sequenceName,
+        'max_value' => $maxValue,
+        'next_value' => $nextValue,
+    ];
+}
+
+function collect_sequence_status(PDO $pdo): array
+{
+    $targets = [
+        ['table' => 'usuarios', 'column' => 'usuario_id'],
+        ['table' => 'ubicaciones_servicio', 'column' => 'ubicacion_id'],
+        ['table' => 'suscripciones', 'column' => 'suscripcion_id'],
+        ['table' => 'rutas', 'column' => 'ruta_id'],
+        ['table' => 'pagos', 'column' => 'pago_id'],
+    ];
+
+    $result = [];
+    foreach ($targets as $target) {
+        $table = $target['table'];
+        $column = $target['column'];
+        $sequenceStmt = $pdo->prepare('SELECT pg_get_serial_sequence(:table_name, :column_name) AS sequence_name');
+        $sequenceStmt->execute([
+            'table_name' => 'public.' . $table,
+            'column_name' => $column,
+        ]);
+        $sequenceName = (string) ($sequenceStmt->fetchColumn() ?: '');
+        $maxStmt = $pdo->query(sprintf('SELECT COALESCE(MAX(%s), 0) FROM %s', $column, $table));
+        $maxValue = (int) ($maxStmt->fetchColumn() ?: 0);
+        $nextValue = null;
+        if ($sequenceName !== '') {
+            $nextStmt = $pdo->query(sprintf('SELECT last_value, is_called FROM %s', $sequenceName));
+            $nextRow = $nextStmt->fetch() ?: [];
+            $lastValue = isset($nextRow['last_value']) ? (int) $nextRow['last_value'] : 0;
+            $isCalled = isset($nextRow['is_called']) ? (bool) $nextRow['is_called'] : true;
+            $nextValue = $isCalled ? $lastValue + 1 : $lastValue;
+        }
+        $result[] = [
+            'table' => $table,
+            'column' => $column,
+            'sequence' => $sequenceName ?: null,
+            'max_id' => $maxValue,
+            'next_sequence_value' => $nextValue,
+            'out_of_sync' => $nextValue !== null ? $nextValue <= $maxValue : null,
+        ];
+    }
+
+    return $result;
+}
+
+function handle_register_pdo_error(PDO $pdo, PDOException $e): void
+{
+    $sqlState = (string) $e->getCode();
+    $message = $e->getMessage();
+
+    if ($sqlState === '23505') {
+        if (str_contains($message, 'correo_electronico')) {
+            json_response([
+                'ok' => false,
+                'message' => 'Este correo ya esta registrado.',
+                'errors' => ['correo' => 'Este correo ya esta registrado.'],
+            ], 409);
+        }
+        if (str_contains($message, 'cedula')) {
+            json_response([
+                'ok' => false,
+                'message' => 'Esta cedula ya esta registrada.',
+                'errors' => ['cedula' => 'Esta cedula ya esta registrada.'],
+            ], 409);
+        }
+        if (str_contains($message, 'usuarios_pkey') || str_contains($message, '(usuario_id)=(')) {
+            $sequenceInfo = reset_table_sequence($pdo, 'usuarios', 'usuario_id');
+            $payload = [
+                'ok' => false,
+                'message' => 'La secuencia de IDs de usuarios estaba desincronizada. Se corrigio; intenta crear la cuenta nuevamente.',
+            ];
+            if (debug_enabled()) {
+                $payload['debug'] = [
+                    'sqlstate' => $sqlState,
+                    'error' => $message,
+                    'sequence_fix' => $sequenceInfo,
+                ];
+            }
+            json_response($payload, 409);
+        }
+    }
+
+    throw $e;
+}
+
 function user_locations_with_routes(int $userId): array
 {
     $stmt = db()->prepare(
@@ -313,6 +440,7 @@ try {
         $result = [
             'database' => $pdo->query('SELECT current_database()')->fetchColumn(),
             'tables' => [],
+            'sequences' => collect_sequence_status($pdo),
         ];
         foreach (['usuarios', 'ubicaciones_servicio', 'rutas', 'suscripciones', 'pagos', 'camiones_rastreo', 'reportes_servicio'] as $table) {
             $stmt = $pdo->prepare('SELECT to_regclass(:table)');
@@ -421,7 +549,7 @@ try {
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();
             }
-            throw $e;
+            handle_register_pdo_error($pdo, $e);
         }
 
         session_regenerate_id(true);
@@ -799,3 +927,4 @@ try {
     }
     json_response(['ok' => false, 'message' => 'Error inesperado del servidor.'], 500);
 }
+
