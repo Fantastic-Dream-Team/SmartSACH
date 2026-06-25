@@ -1,21 +1,14 @@
-// src/App.jsx
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-
-function HomePage() {
-  return (
-    <div style={{ padding: '50px', textAlign: 'center' }}>
-      <h1>✅ SmartSACH funcionando</h1>
-      <p>Si ves esto, React está renderizando correctamente.</p>
-    </div>
-  );
-}
+console.log('🚀 App.jsx se está ejecutando');
 
 export default function App() {
+  console.log('✅ App renderizando');
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-      </Routes>
-    </BrowserRouter>
+    <div style={{ padding: '50px', textAlign: 'center', fontFamily: 'Arial' }}>
+      <h1 style={{ color: 'green' }}>✅ SmartSACH funcionando</h1>
+      <p>Si ves esto, React está renderizando correctamente.</p>
+      <p style={{ fontSize: '12px', color: 'gray' }}>
+        Build: {import.meta.env.MODE} | {new Date().toISOString()}
+      </p>
+    </div>
   );
 }
