@@ -26,7 +26,7 @@ export default function Navbar() {
     navigate('/');
   };
 
-  // Links para usuarios NO autenticados (los que se ven en la segunda imagen)
+  // Links para NO autenticados
   const publicLinks = [
     { path: '/', label: 'Homepage' },
     { path: '/planes', label: 'Planes' },
@@ -34,7 +34,7 @@ export default function Navbar() {
     { path: '/register', label: 'Registrarse' },
   ];
 
-  // Links para usuarios autenticados
+  // Links para autenticados
   const privateLinks = [
     { path: '/', label: 'Home' },
     { path: '/perfil', label: 'Perfil' },
@@ -46,19 +46,19 @@ export default function Navbar() {
   const links = isAuthenticated ? privateLinks : publicLinks;
 
   return (
-    <nav className="bg-white shadow-md px-6 py-4 fixed w-full top-0 z-50">
+    <nav className="bg-white shadow-sm px-6 py-4 fixed w-full top-0 z-50">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
+        <Link to="/" className="flex items-center">
           <img 
             src="/images/logos/Logoyname.png" 
             alt="SmartSACH" 
-            className="h-10 w-auto"
+            className="h-8 w-auto"
           />
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-6">
+        <div className="hidden md:flex items-center gap-8">
           {links.map((link) => (
             <Link
               key={link.path}
@@ -75,7 +75,7 @@ export default function Navbar() {
 
           {isAuthenticated && (
             <>
-              <span className="text-sm text-gray-500 border-l pl-4">
+              <span className="text-sm text-gray-600">
                 {user?.nombre || 'Usuario'}
               </span>
               <button
@@ -88,7 +88,7 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile menu button */}
+        {/* Mobile menu */}
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition"
@@ -122,7 +122,7 @@ export default function Navbar() {
           ))}
           {isAuthenticated && (
             <>
-              <div className="px-4 py-2 text-sm text-gray-500 border-t border-gray-200">
+              <div className="px-4 py-2 text-sm text-gray-600 border-t border-gray-200">
                 {user?.nombre || 'Usuario'}
               </div>
               <button

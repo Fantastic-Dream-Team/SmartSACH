@@ -101,7 +101,6 @@ export default function App() {
             }
           />
 
-          {/* Redirección 404 */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
