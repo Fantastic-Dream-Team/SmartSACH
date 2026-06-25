@@ -38,18 +38,38 @@ export default function RegisterPage() {
     // Solo números
     const numbers = value.replace(/\D/g, '');
     
-    // Máximo 8 dígitos (1+3+4 para cédula panameña)
-    if (numbers.length > 8) return formData.cedula;
+    // Máximo 9 dígitos
+    if (numbers.length > 9) return formData.cedula;
     
-    // Aplicar guiones automáticos: X-XXX-XXXX
     if (numbers.length <= 1) {
       return numbers;
-    } else if (numbers.length <= 4) {
-      // Primer dígito + guión + resto
+    } else if (numbers.length <= 3) {
       return `${numbers.slice(0, 1)}-${numbers.slice(1)}`;
+    } else if (numbers.length === 4) {
+      return `${numbers.slice(0, 1)}-${numbers.slice(1)}`;
+    } else if (numbers.length <= 5) {
+      // X-XXXX o XX-XXX (provincia de 2 dígitos)
+      if (numbers.startsWith('1') && numbers.length >= 2) {
+        return `${numbers.slice(0, 2)}-${numbers.slice(2)}`;
+      } else {
+        return `${numbers.slice(0, 1)}-${numbers.slice(1)}`;
+      }
+    } else if (numbers.length <= 7) {
+      // X-XXX-XX o X-XXXX-XX o XX-XXX-XX
+      if (numbers.startsWith('1') && numbers.length >= 2) {
+        return `${numbers.slice(0, 2)}-${numbers.slice(2, 5)}-${numbers.slice(5)}`;
+      } else {
+        return `${numbers.slice(0, 1)}-${numbers.slice(1, 4)}-${numbers.slice(4)}`;
+      }
     } else {
-      // Primer dígito + guión + 3 dígitos + guión + resto
-      return `${numbers.slice(0, 1)}-${numbers.slice(1, 4)}-${numbers.slice(4)}`;
+      // Formato final
+      if (numbers.startsWith('1') && numbers.length >= 2) {
+        return `${numbers.slice(0, 2)}-${numbers.slice(2, 5)}-${numbers.slice(5)}`;
+      } else if (numbers.length === 8) {
+        return `${numbers.slice(0, 1)}-${numbers.slice(1, 4)}-${numbers.slice(4)}`;
+      } else {
+        return `${numbers.slice(0, 1)}-${numbers.slice(1, 5)}-${numbers.slice(5)}`;
+      }
     }
   };
 
@@ -109,14 +129,14 @@ export default function RegisterPage() {
     if (!formData.apellido.trim()) newErrors.apellido = 'El apellido es obligatorio';
     else if (formData.apellido.length > 15) newErrors.apellido = 'Máximo 15 caracteres';
     
-    // Cédula panameña (formato: X-XXX-XXXX)
+    // Cédula (8-9 dígitos)
     const cedulaLimpia = formData.cedula.replace(/-/g, '');
     if (!formData.cedula.trim()) {
       newErrors.cedula = 'La cédula es obligatoria';
     } else if (!/^\d+$/.test(cedulaLimpia)) {
       newErrors.cedula = 'Solo números (sin letras ni caracteres especiales)';
-    } else if (cedulaLimpia.length !== 8) {
-      newErrors.cedula = 'La cédula debe tener exactamente 8 dígitos (ej: 4-786-9998)';
+    } else if (cedulaLimpia.length < 8 || cedulaLimpia.length > 9) {
+      newErrors.cedula = 'La cédula debe tener 8 o 9 dígitos (ej: 4-789-962, 4-7896-962 o 10-789-962)';
     }
     
     // Correo
@@ -239,7 +259,7 @@ export default function RegisterPage() {
 
           <div>
             <label className="block text-gray-700 font-medium text-sm mb-1">
-              Cédula * (8 dígitos, ej: 4-786-9998)
+              Cédula * (8-9 dígitos)
             </label>
             <input
               type="text"
@@ -247,12 +267,14 @@ export default function RegisterPage() {
               value={formData.cedula}
               onChange={handleChange}
               className={`w-full px-4 py-2.5 border ${errors.cedula ? 'border-red-300 bg-red-50' : 'border-gray-200'} rounded-lg focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/20 transition-all text-sm`}
-              placeholder="4-786-9998"
-              maxLength={9}
+              placeholder="4-789-962"
+              maxLength={11}
               disabled={loading}
             />
             {errors.cedula && <p className="text-red-500 text-xs mt-1">{errors.cedula}</p>}
-            <p className="text-xs text-gray-400 mt-1">Formato: X-XXX-XXXX (ej: 4-786-9998)</p>
+            <p className="text-xs text-gray-400 mt-1">
+              Formatos: X-XXX-XXXX (8), X-XXXX-XXXX (9) o XX-XXX-XXXX (9)
+            </p>
           </div>
 
           <div>
