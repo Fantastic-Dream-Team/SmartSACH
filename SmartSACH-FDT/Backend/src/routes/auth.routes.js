@@ -55,27 +55,16 @@ router.post('/register', async (req, res) => {
             return res.status(500).json({ error: 'Error al registrar usuario' });
         }
 
-        // Generar token JWT
-        const token = jwt.sign(
-            { 
-                id: newUser.usuario_id, 
-                correo: newUser.correo_electronico,
-                nombre: newUser.nombre,
-                apellido: newUser.apellido
-            },
-            JWT_SECRET,
-            { expiresIn: '24h' }
-        );
-
+        // ✅ Devuelve solo un mensaje de éxito (sin token)
         res.status(201).json({
-            token,
+            message: 'Usuario registrado exitosamente',
             user: {
                 id: newUser.usuario_id,
                 nombre: newUser.nombre,
                 apellido: newUser.apellido,
                 correo: newUser.correo_electronico,
                 estado: newUser.estado_verificacion
-            },
+            }
         });
     } catch (error) {
         console.error('Error en register:', error);
