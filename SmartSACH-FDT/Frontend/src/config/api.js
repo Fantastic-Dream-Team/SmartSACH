@@ -1,52 +1,42 @@
-// Frontend/src/config/api.js
+// src/config/api.js
+const API_URL = import.meta.env.VITE_API_URL || 'https://tu-backend.onrender.com';
 
-// En producción usa el mismo origen (Express sirve API + dist/).
-// En desarrollo puedes definir VITE_API_URL=http://localhost:10000 en .env
-const API_BASE_URL = import.meta.env.VITE_API_URL || "";
+export const apiRequest = async (endpoint, options = {}) => {
+  const token = getToken();
+  
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(token && { 'Authorization': `Bearer ${token}` }),
+    ...options.headers,
+  };
 
-export function getToken() {
-    return localStorage.getItem("smartsach_token");
-}
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    ...options,
+    headers,
+  });
 
-export function saveSession(payload) {
-    localStorage.setItem("smartsach_token", payload.token);
-    localStorage.setItem("smartsach_user", JSON.stringify(payload.user));
-}
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Error en la petición');
+  }
 
-export function clearSession() {
-    localStorage.removeItem("smartsach_token");
-    localStorage.removeItem("smartsach_user");
-}
+  return response.json();
+};
 
-export function showMessage(text, type = "danger") {
-    const message = document.querySelector("#message");
-    if (!message) return;
+export const getToken = () => {
+  return localStorage.getItem('token');
+};
 
-    message.className = `alert alert-${type}`;
-    message.textContent = text;
-}
+export const saveSession = (data) => {
+  if (data.token) {
+    localStorage.setItem('token', data.token);
+  }
+  if (data.user) {
+    localStorage.setItem('user', JSON.stringify(data.user));
+  }
+};
 
-export async function apiRequest(path, options = {}) {
-    const headers = {
-        "Content-Type": "application/json",
-        ...(options.headers || {}),
-    };
-
-    const token = getToken();
-    if (token) {
-        headers.Authorization = `Bearer ${token}`;
-    }
-
-    const url = API_BASE_URL ? `${API_BASE_URL}${path}` : path;
-    const response = await fetch(url, {
-        ...options,
-        headers,
-    });
-
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-        throw new Error(data.error || "No se pudo completar la solicitud.");
-    }
-
-    return data;
-}
+export const logout = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+};

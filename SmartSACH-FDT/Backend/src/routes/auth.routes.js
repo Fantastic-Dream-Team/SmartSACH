@@ -1,58 +1,141 @@
-import express from 'express';
-import { supabase } from '../config/supabase.js';
+// Backend/src/routes/auth.routes.js
+const express = require('express');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const supabase = require('../config/database');
+const { JWT_SECRET } = require('../config/env');
 
 const router = express.Router();
 
-// POST: Manejar el registro de ciudadanos
+// ===== REGISTRO (adaptado a tu tabla) =====
 router.post('/register', async (req, res) => {
-  const { correo, password, nombre, apellido, cedula } = req.body;
+    try {
+        const { nombre, apellido, cedula, correo, password } = req.body;
 
-  try {
-    const { data, error } = await supabase.auth.signUp({
-      email: correo,
-      password: password,
-      options: {
-        data: { nombre, apellido, cedula }
-      }
-    });
+        // Validaciones
+        if (!nombre || !apellido || !cedula || !correo || !password) {
+            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+        }
+        if (password.length < 6) {
+            return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
+        }
 
-    if (error) return res.status(400).json({ error: error.message });
+        // Verificar si el correo ya existe
+        const { data: existingUser } = await supabase
+            .from('usuarios')
+            .select('correo_electronico')
+            .eq('correo_electronico', correo)
+            .single();
 
-    res.status(201).json({
-      token: data.session?.access_token,
-      user: {
-        id: data.user?.id,
-        correo: data.user?.email,
-        nombre
-      }
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+        if (existingUser) {
+            return res.status(400).json({ error: 'El correo ya está registrado' });
+        }
+
+        // Hash de la contraseña
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Insertar usuario en Supabase
+        const { data: newUser, error } = await supabase
+            .from('usuarios')
+            .insert([
+                {
+                    nombre,
+                    apellido,
+                    cedula,
+                    correo_electronico: correo,
+                    password: hashedPassword, // ⬅️ Usamos "password" como en tu tabla
+                    estado_verificacion: 'activo' // ⬅️ Lo activamos directamente
+                },
+            ])
+            .select('usuario_id, nombre, apellido, cedula, correo_electronico, estado_verificacion, fecha_registro')
+            .single();
+
+        if (error) {
+            console.error('Error al registrar usuario:', error);
+            return res.status(500).json({ error: 'Error al registrar usuario' });
+        }
+
+        // Generar token JWT
+        const token = jwt.sign(
+            { 
+                id: newUser.usuario_id, 
+                correo: newUser.correo_electronico,
+                nombre: newUser.nombre,
+                apellido: newUser.apellido
+            },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        res.status(201).json({
+            token,
+            user: {
+                id: newUser.usuario_id,
+                nombre: newUser.nombre,
+                apellido: newUser.apellido,
+                correo: newUser.correo_electronico,
+                estado: newUser.estado_verificacion
+            },
+        });
+    } catch (error) {
+        console.error('Error en register:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
 });
 
-// POST: Manejar el inicio de sesión
+// ===== LOGIN (adaptado a tu tabla) =====
 router.post('/login', async (req, res) => {
-  const { correo, password } = req.body;
+    try {
+        const { correo, password } = req.body;
 
-  try {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: correo,
-      password: password
-    });
+        // Validaciones
+        if (!correo || !password) {
+            return res.status(400).json({ error: 'Correo y contraseña son obligatorios' });
+        }
 
-    if (error) return res.status(400).json({ error: error.message });
+        // Buscar usuario por correo electrónico
+        const { data: user, error } = await supabase
+            .from('usuarios')
+            .select('usuario_id, nombre, apellido, cedula, correo_electronico, password, estado_verificacion')
+            .eq('correo_electronico', correo)
+            .single();
 
-    res.status(200).json({
-      token: data.session.access_token,
-      user: {
-        id: data.user.id,
-        correo: data.user.email
-      }
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+        if (error || !user) {
+            return res.status(401).json({ error: 'Credenciales incorrectas' });
+        }
+
+        // Verificar contraseña
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ error: 'Credenciales incorrectas' });
+        }
+
+        // Generar token JWT
+        const token = jwt.sign(
+            { 
+                id: user.usuario_id, 
+                correo: user.correo_electronico,
+                nombre: user.nombre,
+                apellido: user.apellido
+            },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        res.json({
+            token,
+            user: {
+                id: user.usuario_id,
+                nombre: user.nombre,
+                apellido: user.apellido,
+                correo: user.correo_electronico,
+                estado: user.estado_verificacion
+            },
+        });
+    } catch (error) {
+        console.error('Error en login:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
 });
 
-export default router;
+module.exports = router;
