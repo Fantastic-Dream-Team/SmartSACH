@@ -34,17 +34,17 @@ router.post('/register', async (req, res) => {
         // Hash de la contraseña
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Insertar usuario en Supabase
+        // Insertar usuario en Supabase (usando las columnas exactas de tu tabla)
         const { data: newUser, error } = await supabase
             .from('usuarios')
             .insert([
                 {
-                    nombre,
-                    apellido,
-                    cedula,
-                    correo_electronico: correo,
-                    password: hashedPassword,
-                    estado_verificacion: 'activo'
+                    nombre: nombre,
+                    apellido: apellido,
+                    cedula: cedula,
+                    correo_electronico: correo,  // ⬅️ Coincide con tu columna
+                    password: hashedPassword,     // ⬅️ Coincide con tu columna
+                    estado_verificacion: 'activo' // ⬅️ Lo activamos directamente
                 },
             ])
             .select('usuario_id, nombre, apellido, cedula, correo_electronico, estado_verificacion, fecha_registro')
@@ -52,23 +52,34 @@ router.post('/register', async (req, res) => {
 
         if (error) {
             console.error('Error al registrar usuario:', error);
-            return res.status(500).json({ error: 'Error al registrar usuario' });
+            return res.status(500).json({ error: 'Error al registrar usuario: ' + error.message });
         }
 
-        // ✅ Devuelve solo un mensaje de éxito (sin token)
+        // Generar token JWT
+        const token = jwt.sign(
+            { 
+                id: newUser.usuario_id, 
+                correo: newUser.correo_electronico,
+                nombre: newUser.nombre,
+                apellido: newUser.apellido
+            },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
         res.status(201).json({
-            message: 'Usuario registrado exitosamente',
+            token,
             user: {
                 id: newUser.usuario_id,
                 nombre: newUser.nombre,
                 apellido: newUser.apellido,
                 correo: newUser.correo_electronico,
                 estado: newUser.estado_verificacion
-            }
+            },
         });
     } catch (error) {
         console.error('Error en register:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
+        res.status(500).json({ error: 'Error interno del servidor: ' + error.message });
     }
 });
 
@@ -123,7 +134,7 @@ router.post('/login', async (req, res) => {
         });
     } catch (error) {
         console.error('Error en login:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
+        res.status(500).json({ error: 'Error interno del servidor: ' + error.message });
     }
 });
 
