@@ -14,11 +14,14 @@ import statusRouter from "./routes/status.routes.js";
 
 const app = express();
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const frontendDistPath = join(__dirname, "..", "..", "Frontend", "dist");
-const frontendSourcePath = join(__dirname, "..", "..", "Frontend");
+const backendRoot = join(__dirname, "..");
+const frontendDistPath = join(backendRoot, "Frontend", "dist");
+const frontendSourcePath = join(backendRoot, "..", "Frontend");
 const frontendPath = existsSync(join(frontendDistPath, "index.html"))
   ? frontendDistPath
-  : frontendSourcePath;
+  : existsSync(join(frontendSourcePath, "index.html"))
+    ? frontendSourcePath
+    : null;
 
 app.use(
   helmet({
@@ -47,16 +50,20 @@ app.use("/api/auth", authRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/status", statusRouter);
 
-if (existsSync(frontendPath)) {
+if (frontendPath) {
   app.use(express.static(frontendPath));
 
-  app.get("*", (_req, res, next) => {
-    if (_req.path.startsWith("/api") || _req.path === "/health") {
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api") || req.path === "/health") {
       next();
       return;
     }
 
-    res.sendFile(join(frontendPath, "index.html"));
+    res.sendFile(join(frontendPath, "index.html"), (err) => {
+      if (err) {
+        next(err);
+      }
+    });
   });
 }
 
