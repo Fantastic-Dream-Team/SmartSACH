@@ -1,4 +1,3 @@
-// Backend/src/config/database.js
 import pg from 'pg';
 import { env } from './env.js';
 
@@ -53,5 +52,6 @@ export const getDatabaseDiagnostics = async () => {
   }
 };
 
-// Exportación por defecto del pool para las consultas normales
+// Exportaciones para ES Modules
+export { pool };
 export default pool;

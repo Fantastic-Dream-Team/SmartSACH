@@ -1,6 +1,5 @@
-// Backend/src/routes/auth.routes.js
 import express from 'express';
-import { supabase } from '../config/supabase.js'; // Asegura agregar la extensión .js
+import { supabase } from '../config/supabase.js';
 
 const router = express.Router();
 
@@ -56,5 +55,4 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Exportación correcta para ES Modules
 export default router;

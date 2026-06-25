@@ -1,6 +1,5 @@
-// Backend/src/routes/dashboard.routes.js
 import express from 'express';
-import pool from '../config/database.js'; // Ajusta la extensión según tus archivos
+import pool from '../config/database.js';
 import { requireAuth } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -48,5 +47,4 @@ router.get('/', requireAuth, async (req, res) => {
   }
 });
 
-// Exportación correcta para ES Modules
 export default router;
