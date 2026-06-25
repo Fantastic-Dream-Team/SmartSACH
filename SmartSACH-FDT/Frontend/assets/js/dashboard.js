@@ -2,7 +2,7 @@
 async function loadDashboard() {
   try {
     // Ejecuta de manera nativa una petición GET protegida por el middleware de Render
-    const data = await apiRequest("/api/dashboard"); 
+    const data = await apiRequest("/api/dashboard");
     
     document.querySelector("#welcome").textContent = `Hola, ${data.user.nombre} ${data.user.apellido || ''}`;
     renderRoutes(data.rutas || []);

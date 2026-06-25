@@ -4,7 +4,12 @@ import { env } from './env.js';
 
 const { Pool } = pg;
 
-// 1. Configuración del Pool de conexiones
+// 1. Validar si la configuración existe (Requerido por status.routes.js)
+export const hasDatabaseConfig = Boolean(
+  env.databaseUrl || (env.dbHost && env.dbPassword)
+);
+
+// 2. Configuración del Pool de conexiones
 const pool = new Pool({
   host: env.dbHost,
   port: env.dbPort,
@@ -21,8 +26,7 @@ pool.on('error', (err) => {
   console.error('Error inesperado en el Pool de PostgreSQL:', err);
 });
 
-// 2. FUNCIÓN DE DIAGNÓSTICO (Requerida por status.routes.js / health.routes.js)
-// Esta función ejecuta una consulta rápida de prueba ('SELECT NOW()') para verificar la salud de la BD
+// 3. Función de diagnóstico de salud (Requerido por status.routes.js)
 export const getDatabaseDiagnostics = async () => {
   const startTime = Date.now();
   try {
@@ -42,5 +46,5 @@ export const getDatabaseDiagnostics = async () => {
   }
 };
 
-// Exportación por defecto del pool para las consultas cotidianas
+// Exportación por defecto del pool para las consultas normales
 export default pool;
