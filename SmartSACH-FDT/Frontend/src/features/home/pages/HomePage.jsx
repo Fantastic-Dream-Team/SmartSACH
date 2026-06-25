@@ -5,35 +5,47 @@ import UbicacionHora from '../../../components/UbicacionHora.jsx';
 const HomePage = () => {
   return (
     <div className="min-h-screen bg-white">
-      {/* ===== HERO SECTION CON VENTANITA ===== */}
-      <section 
-        className="pt-20 pb-16 px-6 relative min-h-[600px] flex items-center justify-center"
-        style={{
-          backgroundImage: `url('/images/chiriqui.jpg')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      >
-        <div className="absolute inset-0 bg-black/40"></div>
-        
-        <div className="relative z-10 max-w-3xl mx-auto bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-8 md:p-12 text-center border border-white/20">
-          <div className="mb-4">
-            <UbicacionHora />
+      {/* ===== HERO SECTION CON DISEÑO DIVIDIDO ===== */}
+      <section className="pt-20 pb-16 px-6 min-h-[600px] flex items-center bg-gradient-to-br from-green-50 via-white to-blue-50">
+        <div className="max-w-7xl mx-auto w-full">
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            
+            {/* ===== LADO IZQUIERDO - VENTANITA ===== */}
+            <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-8 md:p-10 text-center border border-green-100">
+              {/* Ubicación y hora */}
+              <div className="mb-4">
+                <UbicacionHora />
+              </div>
+              
+              {/* Título */}
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-800 mb-4 tracking-tight">
+                <span className="text-green-600">SmartSACH</span>
+              </h1>
+              
+              {/* Subtítulo */}
+              <p className="text-xl md:text-2xl text-gray-700 mb-4 max-w-2xl mx-auto font-medium">
+                Gestión inteligente de recolección en Chiriquí
+              </p>
+              
+              {/* Descripción */}
+              <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                Consulta rutas, pagos, reporta incidencias y mantén tu servicio al día.
+              </p>
+              
+              {/* Línea decorativa */}
+              <div className="w-24 h-1 bg-green-500 mx-auto mt-6 rounded-full"></div>
+            </div>
+
+            {/* ===== LADO DERECHO - IMAGEN ===== */}
+            <div className="rounded-3xl overflow-hidden shadow-2xl ring-4 ring-green-200 relative group">
+              <img 
+                src="/images/imagen1.jpg" 
+                alt="SmartSACH" 
+                className="w-full h-[400px] md:h-[500px] object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black/20 to-transparent"></div>
+            </div>
           </div>
-          
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-800 mb-4 tracking-tight">
-            <span className="text-green-600">SmartSACH</span>
-          </h1>
-          
-          <p className="text-xl md:text-2xl text-gray-700 mb-4 max-w-2xl mx-auto font-medium">
-            Gestión inteligente de recolección en Chiriquí
-          </p>
-          
-          <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Consulta rutas, pagos, reporta incidencias y mantén tu servicio al día.
-          </p>
-          
-          <div className="w-24 h-1 bg-green-500 mx-auto mt-6 rounded-full"></div>
         </div>
       </section>
 
@@ -41,7 +53,6 @@ const HomePage = () => {
       <section className="py-16 px-6 bg-gradient-to-br from-green-50 via-white to-blue-50">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
-            {/* Texto */}
             <div>
               <h2 className="text-4xl font-bold text-gray-800 mb-6 flex items-center gap-3">
                 <span className="text-green-600">✨</span>
@@ -67,8 +78,6 @@ const HomePage = () => {
                 </div>
               </div>
             </div>
-            
-            {/* ===== IMAGEN CAMBIADA A camionsach.jpg ===== */}
             <div className="rounded-2xl overflow-hidden shadow-2xl ring-4 ring-green-200 relative group">
               <img 
                 src="/images/camionsach.jpg" 
@@ -90,38 +99,26 @@ const HomePage = () => {
           </p>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Servicio 1 - Recolección */}
             <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all hover:-translate-y-1 border border-gray-100">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-3xl mb-4 mx-auto">
-                🗑️
-              </div>
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-3xl mb-4 mx-auto">🗑️</div>
               <h3 className="text-xl font-semibold text-gray-800 text-center mb-2">Recolección</h3>
               <p className="text-gray-500 text-sm text-center">Recolección oportuna de residuos en la comunidad.</p>
             </div>
 
-            {/* Servicio 2 - Rastro */}
             <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all hover:-translate-y-1 border border-gray-100">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-3xl mb-4 mx-auto">
-                📍
-              </div>
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-3xl mb-4 mx-auto">📍</div>
               <h3 className="text-xl font-semibold text-gray-800 text-center mb-2">Rastro</h3>
               <p className="text-gray-500 text-sm text-center">Sitio en campo real, la ubicación de los carrilleros.</p>
             </div>
 
-            {/* Servicio 3 - Reportes */}
             <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all hover:-translate-y-1 border border-gray-100">
-              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center text-3xl mb-4 mx-auto">
-                📋
-              </div>
+              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center text-3xl mb-4 mx-auto">📋</div>
               <h3 className="text-xl font-semibold text-gray-800 text-center mb-2">Reportes</h3>
               <p className="text-gray-500 text-sm text-center">Reporta incidentes y recibe atención rápida.</p>
             </div>
 
-            {/* Servicio 4 - Pagos */}
             <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all hover:-translate-y-1 border border-gray-100">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center text-3xl mb-4 mx-auto">
-                💰
-              </div>
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center text-3xl mb-4 mx-auto">💰</div>
               <h3 className="text-xl font-semibold text-gray-800 text-center mb-2">Pagos</h3>
               <p className="text-gray-500 text-sm text-center">Contiene los pagos y suscripciones.</p>
             </div>
