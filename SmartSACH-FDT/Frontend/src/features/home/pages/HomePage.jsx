@@ -4,33 +4,7 @@ import { Link } from 'react-router-dom';
 const HomePage = () => {
   return (
     <div className="min-h-screen bg-white">
-      {/* Navbar */}
-      <nav className="bg-white shadow-sm px-6 py-4 fixed w-full top-0 z-50">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <img 
-              src="/images/logos/Logoyname.png" 
-              alt="SmartSACH" 
-              className="h-12 w-auto"
-            />
-          </div>
-          
-          <div className="flex gap-3">
-            <Link
-              to="/login"
-              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-            >
-              Iniciar Sesión
-            </Link>
-            <Link
-              to="/register"
-              className="px-6 py-2 bg-white text-green-600 rounded-lg hover:bg-gray-50 transition-colors font-medium border border-green-600"
-            >
-              Registrarse
-            </Link>
-          </div>
-        </div>
-      </nav>
+      {/* ✅ ELIMINADO: el Navbar ya está en App.jsx */}
 
       {/* Hero Section */}
       <section 
