@@ -91,60 +91,67 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center px-4 py-8">
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-green-700">SmartSACH</h1>
-          <p className="text-gray-500 text-sm mt-1">Crea tu cuenta</p>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-100 flex items-center justify-center px-4 py-8">
+      <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-8 w-full max-w-md border border-white/20">
+        {/* Logo y título */}
+        <div className="text-center mb-6">
+          <div className="flex justify-center mb-3">
+            <div className="w-14 h-14 bg-green-600 rounded-2xl flex items-center justify-center shadow-lg shadow-green-200">
+              <span className="text-2xl text-white font-bold">S</span>
+            </div>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-800">SmartSACH</h1>
+          <p className="text-gray-500 text-sm">Crea tu cuenta</p>
         </div>
 
+        {/* Mensajes */}
         {successMsg && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4 text-sm">
-            ✅ {successMsg}
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-4 text-sm flex items-center gap-2">
+            <span className="text-lg">✅</span>
+            {successMsg}
           </div>
         )}
 
         {errorMsg && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
-            ❌ {errorMsg}
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-4 text-sm flex items-center gap-2">
+            <span className="text-lg">❌</span>
+            {errorMsg}
           </div>
         )}
 
+        {/* Formulario */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
-            <input
-              type="text"
-              name="nombre"
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                errores.nombre ? 'border-red-400' : 'border-gray-300'
-              }`}
-              placeholder="Tu nombre"
-              value={formData.nombre}
-              onChange={handleChange}
-              disabled={loading}
-            />
-            {errores.nombre && (
-              <span className="text-xs text-red-600 mt-1 block">{errores.nombre}</span>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Apellido *</label>
-            <input
-              type="text"
-              name="apellido"
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                errores.apellido ? 'border-red-400' : 'border-gray-300'
-              }`}
-              placeholder="Tu apellido"
-              value={formData.apellido}
-              onChange={handleChange}
-              disabled={loading}
-            />
-            {errores.apellido && (
-              <span className="text-xs text-red-600 mt-1 block">{errores.apellido}</span>
-            )}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
+              <input
+                type="text"
+                name="nombre"
+                className={`w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all ${
+                  errores.nombre ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'
+                }`}
+                placeholder="Juan"
+                value={formData.nombre}
+                onChange={handleChange}
+                disabled={loading}
+              />
+              {errores.nombre && <span className="text-xs text-red-600 mt-1 block">{errores.nombre}</span>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Apellido *</label>
+              <input
+                type="text"
+                name="apellido"
+                className={`w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all ${
+                  errores.apellido ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'
+                }`}
+                placeholder="Pérez"
+                value={formData.apellido}
+                onChange={handleChange}
+                disabled={loading}
+              />
+              {errores.apellido && <span className="text-xs text-red-600 mt-1 block">{errores.apellido}</span>}
+            </div>
           </div>
 
           <div>
@@ -152,17 +159,15 @@ export default function RegisterPage() {
             <input
               type="text"
               name="cedula"
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                errores.cedula ? 'border-red-400' : 'border-gray-300'
+              className={`w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all ${
+                errores.cedula ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'
               }`}
               placeholder="8-888-8888"
               value={formData.cedula}
               onChange={handleChange}
               disabled={loading}
             />
-            {errores.cedula && (
-              <span className="text-xs text-red-600 mt-1 block">{errores.cedula}</span>
-            )}
+            {errores.cedula && <span className="text-xs text-red-600 mt-1 block">{errores.cedula}</span>}
           </div>
 
           <div>
@@ -170,17 +175,15 @@ export default function RegisterPage() {
             <input
               type="email"
               name="correo"
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                errores.correo ? 'border-red-400' : 'border-gray-300'
+              className={`w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all ${
+                errores.correo ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'
               }`}
               placeholder="tucorreo@ejemplo.com"
               value={formData.correo}
               onChange={handleChange}
               disabled={loading}
             />
-            {errores.correo && (
-              <span className="text-xs text-red-600 mt-1 block">{errores.correo}</span>
-            )}
+            {errores.correo && <span className="text-xs text-red-600 mt-1 block">{errores.correo}</span>}
           </div>
 
           <div>
@@ -188,17 +191,15 @@ export default function RegisterPage() {
             <input
               type="password"
               name="password"
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                errores.password ? 'border-red-400' : 'border-gray-300'
+              className={`w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all ${
+                errores.password ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'
               }`}
               placeholder="••••••••"
               value={formData.password}
               onChange={handleChange}
               disabled={loading}
             />
-            {errores.password && (
-              <span className="text-xs text-red-600 mt-1 block">{errores.password}</span>
-            )}
+            {errores.password && <span className="text-xs text-red-600 mt-1 block">{errores.password}</span>}
           </div>
 
           <div>
@@ -206,31 +207,39 @@ export default function RegisterPage() {
             <input
               type="password"
               name="confirmPassword"
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                errores.confirmPassword ? 'border-red-400' : 'border-gray-300'
+              className={`w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all ${
+                errores.confirmPassword ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'
               }`}
               placeholder="Repite tu contraseña"
               value={formData.confirmPassword}
               onChange={handleChange}
               disabled={loading}
             />
-            {errores.confirmPassword && (
-              <span className="text-xs text-red-600 mt-1 block">{errores.confirmPassword}</span>
-            )}
+            {errores.confirmPassword && <span className="text-xs text-red-600 mt-1 block">{errores.confirmPassword}</span>}
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg transition-colors disabled:opacity-60"
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition-all transform hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100 shadow-lg shadow-green-200"
           >
-            {loading ? 'Registrando...' : 'Registrarse'}
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Registrando...
+              </span>
+            ) : (
+              'Registrarse'
+            )}
           </button>
         </form>
 
         <p className="text-center text-sm text-gray-600 mt-6">
           ¿Ya tienes cuenta?{' '}
-          <Link to="/login" className="text-green-600 hover:text-green-700 font-medium hover:underline">
+          <Link to="/login" className="text-green-600 hover:text-green-700 font-medium hover:underline transition-all">
             Inicia sesión
           </Link>
         </p>
