@@ -3,112 +3,37 @@ import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import DashboardCard from './DashboardCard.jsx';
+import UbicacionHora from '../../../components/UbicacionHora.jsx';
 
-// ===== ICONO DEL CAMIÓN =====
+// Iconos
 const truckIcon = L.divIcon({
-  html: `
-    <div style="
-      background: #2563eb;
-      color: white;
-      border-radius: 50%;
-      width: 36px;
-      height: 36px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.5);
-      border: 2px solid white;
-      animation: pulse 1.5s infinite;
-    ">
-      🚛
-    </div>
-    <style>
-      @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-        100% { transform: scale(1); }
-      }
-    </style>
-  `,
+  html: `<div style="background:#2563eb;color:white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 12px rgba(37,99,235,0.5);border:2px solid white;animation:pulse 1.5s infinite;">🚛</div><style>@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.1)}100%{transform:scale(1)}}</style>`,
   iconSize: [36, 36],
   iconAnchor: [18, 36],
   popupAnchor: [0, -36],
 });
 
-// ===== ICONO DEL PUNTO DE RECOLECCIÓN =====
 const pointIcon = L.divIcon({
-  html: `
-    <div style="
-      background: #22c55e;
-      color: white;
-      border-radius: 50%;
-      width: 24px;
-      height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
-      border: 2px solid white;
-    ">
-      🏠
-    </div>
-  `,
+  html: `<div style="background:#22c55e;color:white;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 2px 8px rgba(34,197,94,0.4);border:2px solid white;">🏠</div>`,
   iconSize: [24, 24],
   iconAnchor: [12, 24],
   popupAnchor: [0, -24],
 });
 
-// ===== ICONO DE INICIO DE RUTA =====
 const startIcon = L.divIcon({
-  html: `
-    <div style="
-      background: #f59e0b;
-      color: white;
-      border-radius: 50%;
-      width: 28px;
-      height: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.5);
-      border: 2px solid white;
-    ">
-      🏁
-    </div>
-  `,
+  html: `<div style="background:#f59e0b;color:white;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 4px 12px rgba(245,158,11,0.5);border:2px solid white;">🏁</div>`,
   iconSize: [28, 28],
   iconAnchor: [14, 28],
   popupAnchor: [0, -28],
 });
 
-// ===== ICONO DE FIN DE RUTA =====
 const endIcon = L.divIcon({
-  html: `
-    <div style="
-      background: #ef4444;
-      color: white;
-      border-radius: 50%;
-      width: 28px;
-      height: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.5);
-      border: 2px solid white;
-    ">
-      🏁
-    </div>
-  `,
+  html: `<div style="background:#ef4444;color:white;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 4px 12px rgba(239,68,68,0.5);border:2px solid white;">🏁</div>`,
   iconSize: [28, 28],
   iconAnchor: [14, 28],
   popupAnchor: [0, -28],
 });
 
-// ===== DATOS DE EJEMPLO (RUTAS Y CAMIONES) =====
 const rutasData = {
   'Ruta 1 - David Centro': {
     points: [
@@ -152,155 +77,55 @@ export default function MapaTab() {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const [selectedRuta, setSelectedRuta] = useState('Ruta 1 - David Centro');
-  const [truckPositions, setTruckPositions] = useState({});
-  const [animationInterval, setAnimationInterval] = useState(null);
-  const [isAnimating, setIsAnimating] = useState(false);
   const [truckMarker, setTruckMarker] = useState(null);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [animationInterval, setAnimationInterval] = useState(null);
   const [currentPointIndex, setCurrentPointIndex] = useState(0);
 
-  // ===== INICIALIZAR MAPA =====
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
-
-    const map = L.map(mapRef.current, {
-      center: [8.4350, -82.4380],
-      zoom: 14,
-      zoomControl: true,
-    });
-
+    const map = L.map(mapRef.current, { center: [8.4350, -82.4380], zoom: 14 });
     mapInstanceRef.current = map;
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
-      maxZoom: 19,
-    }).addTo(map);
-
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
     dibujarRuta(map, selectedRuta);
-
-    return () => {
-      if (animationInterval) {
-        clearInterval(animationInterval);
-        setAnimationInterval(null);
-      }
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-    };
+    return () => { if (animationInterval) clearInterval(animationInterval); if (mapInstanceRef.current) mapInstanceRef.current.remove(); };
   }, []);
 
-  // ===== DIBUJAR RUTA =====
   const dibujarRuta = (map, rutaKey) => {
     const ruta = rutasData[rutaKey];
     if (!ruta) return;
-
-    // Limpiar capas anteriores
-    map.eachLayer((layer) => {
-      if (layer._isRuta) {
-        map.removeLayer(layer);
-      }
-    });
-
+    map.eachLayer((layer) => { if (layer._isRuta) map.removeLayer(layer); });
     const puntos = ruta.points;
-    const color = ruta.color;
-
-    // 1. Dibujar línea de la ruta
     const latlngs = puntos.map(p => [p.lat, p.lng]);
-    const polyline = L.polyline(latlngs, {
-      color: color,
-      weight: 4,
-      opacity: 0.8,
-      dashArray: '10, 10',
-    }).addTo(map);
+    const polyline = L.polyline(latlngs, { color: ruta.color, weight: 4, opacity: 0.8, dashArray: '10, 10' }).addTo(map);
     polyline._isRuta = true;
-
-    // 2. Agregar marcadores
     puntos.forEach((punto, index) => {
-      let icon;
-      if (index === 0) icon = startIcon;
-      else if (index === puntos.length - 1) icon = endIcon;
-      else icon = pointIcon;
-
-      const marker = L.marker([punto.lat, punto.lng], { icon })
-        .addTo(map)
-        .bindPopup(`
-          <b>${punto.nombre}</b><br>
-          📍 Lat: ${punto.lat.toFixed(6)}<br>
-          📍 Lng: ${punto.lng.toFixed(6)}
-        `);
+      let icon; if (index === 0) icon = startIcon; else if (index === puntos.length - 1) icon = endIcon; else icon = pointIcon;
+      const marker = L.marker([punto.lat, punto.lng], { icon }).addTo(map).bindPopup(`<b>${punto.nombre}</b><br>📍 Lat: ${punto.lat.toFixed(6)}<br>📍 Lng: ${punto.lng.toFixed(6)}`);
       marker._isRuta = true;
     });
-
-    // 3. Agregar camión en la posición inicial
     const truck = ruta.truck;
-    const marker = L.marker([truck.lat, truck.lng], { 
-      icon: truckIcon,
-      draggable: false,
-    })
-      .addTo(map)
-      .bindPopup(`
-        <b>${truck.nombre}</b><br>
-        🚛 Ruta: ${rutaKey}<br>
-        📍 Lat: ${truck.lat.toFixed(6)}<br>
-        📍 Lng: ${truck.lng.toFixed(6)}
-      `);
+    const marker = L.marker([truck.lat, truck.lng], { icon: truckIcon }).addTo(map).bindPopup(`<b>${truck.nombre}</b><br>🚛 Ruta: ${rutaKey}`);
     marker._isRuta = true;
-
     setTruckMarker(marker);
     setCurrentPointIndex(0);
-    setTruckPositions({ [rutaKey]: { marker, currentIndex: 0 } });
-
-    // Centrar en la ruta
     map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
   };
 
-  // ===== INICIAR RECORRIDO =====
   const iniciarRecorrido = () => {
-    if (isAnimating) {
-      alert('⚠️ El recorrido ya está en curso');
-      return;
-    }
-
+    if (isAnimating) { alert('⚠️ El recorrido ya está en curso'); return; }
     const ruta = rutasData[selectedRuta];
-    if (!ruta || !truckMarker) {
-      alert('⚠️ No se encontró la ruta o el camión');
-      return;
-    }
-
+    if (!ruta || !truckMarker) { alert('⚠️ No se encontró la ruta o el camión'); return; }
     setIsAnimating(true);
-    setCurrentPointIndex(0);
-
     const puntos = ruta.points;
     let index = 0;
-
     const interval = setInterval(() => {
       const nextIndex = (index + 1) % puntos.length;
       const nextPoint = puntos[nextIndex];
-      
-      // Mover el camión
       truckMarker.setLatLng([nextPoint.lat, nextPoint.lng]);
-      truckMarker.setPopupContent(`
-        <b>${ruta.truck.nombre}</b><br>
-        🚛 Ruta: ${selectedRuta}<br>
-        📍 Lat: ${nextPoint.lat.toFixed(6)}<br>
-        📍 Lng: ${nextPoint.lng.toFixed(6)}<br>
-        📍 ${nextPoint.nombre}
-      `);
-      
-      // Actualizar índice
+      truckMarker.setPopupContent(`<b>${ruta.truck.nombre}</b><br>🚛 Ruta: ${selectedRuta}<br>📍 ${nextPoint.nombre}`);
       index = nextIndex;
       setCurrentPointIndex(index);
-
-      // Actualizar estado
-      setTruckPositions(prev => ({
-        ...prev,
-        [selectedRuta]: { 
-          marker: truckMarker, 
-          currentIndex: index 
-        }
-      }));
-
-      // Si llegamos al final, detener
       if (index === puntos.length - 1) {
         clearInterval(interval);
         setAnimationInterval(null);
@@ -308,160 +133,59 @@ export default function MapaTab() {
         alert('✅ ¡Recorrido completado!');
       }
     }, 2000);
-
     setAnimationInterval(interval);
   };
 
-  // ===== DETENER RECORRIDO =====
   const detenerRecorrido = () => {
-    if (animationInterval) {
-      clearInterval(animationInterval);
-      setAnimationInterval(null);
-      setIsAnimating(false);
-      
-      // Mostrar mensaje
-      const ruta = rutasData[selectedRuta];
-      const punto = ruta.points[currentPointIndex];
-      alert(`⏹️ Recorrido detenido en: ${punto.nombre}`);
-    } else {
-      alert('⚠️ No hay ningún recorrido en curso');
-    }
+    if (animationInterval) { clearInterval(animationInterval); setAnimationInterval(null); setIsAnimating(false); alert('⏹️ Recorrido detenido'); }
+    else alert('⚠️ No hay ningún recorrido en curso');
   };
 
-  // ===== CAMBIAR RUTA =====
-  const cambiarRuta = (rutaKey) => {
-    if (isAnimating) {
-      alert('⚠️ Detén el recorrido primero');
-      return;
-    }
-    
-    setSelectedRuta(rutaKey);
-    if (mapInstanceRef.current) {
-      dibujarRuta(mapInstanceRef.current, rutaKey);
-    }
-  };
-
-  // ===== REINICIAR RECORRIDO =====
   const reiniciarRecorrido = () => {
-    if (isAnimating) {
-      alert('⚠️ Detén el recorrido primero');
-      return;
-    }
-
+    if (isAnimating) { alert('⚠️ Detén el recorrido primero'); return; }
     const ruta = rutasData[selectedRuta];
     if (!ruta || !truckMarker) return;
-
     const puntoInicio = ruta.points[0];
     truckMarker.setLatLng([puntoInicio.lat, puntoInicio.lng]);
-    truckMarker.setPopupContent(`
-      <b>${ruta.truck.nombre}</b><br>
-      🚛 Ruta: ${selectedRuta}<br>
-      📍 Lat: ${puntoInicio.lat.toFixed(6)}<br>
-      📍 Lng: ${puntoInicio.lng.toFixed(6)}<br>
-      📍 ${puntoInicio.nombre}
-    `);
+    truckMarker.setPopupContent(`<b>${ruta.truck.nombre}</b><br>🚛 Ruta: ${selectedRuta}<br>📍 ${puntoInicio.nombre}`);
     setCurrentPointIndex(0);
-    setTruckPositions(prev => ({
-      ...prev,
-      [selectedRuta]: { 
-        marker: truckMarker, 
-        currentIndex: 0 
-      }
-    }));
+  };
+
+  const cambiarRuta = (rutaKey) => {
+    if (isAnimating) { alert('⚠️ Detén el recorrido primero'); return; }
+    setSelectedRuta(rutaKey);
+    if (mapInstanceRef.current) dibujarRuta(mapInstanceRef.current, rutaKey);
   };
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-6">
-        <span className="text-2xl">📍</span>
-        <span className="text-sm text-gray-500">Chiriquí · 12 de junio 8:34 a.m.</span>
-      </div>
-      
+      <UbicacionHora />
       <h2 className="text-2xl font-bold text-green-800 mb-6">🚛 Mapa de Rutas y Camiones</h2>
-      
       <DashboardCard>
-        {/* ===== SELECTOR DE RUTA ===== */}
         <div className="mb-4 flex flex-wrap gap-3 items-center">
           <label className="text-sm font-medium text-gray-700">Seleccionar ruta:</label>
-          <select
-            value={selectedRuta}
-            onChange={(e) => cambiarRuta(e.target.value)}
-            className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-green-600 text-sm"
-          >
-            {Object.keys(rutasData).map((key) => (
-              <option key={key} value={key}>{key}</option>
-            ))}
+          <select value={selectedRuta} onChange={(e) => cambiarRuta(e.target.value)} className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-green-600 text-sm">
+            {Object.keys(rutasData).map((key) => <option key={key} value={key}>{key}</option>)}
           </select>
-          
-          <button
-            onClick={iniciarRecorrido}
-            disabled={isAnimating}
-            className="bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg transition text-sm font-medium"
-          >
-            ▶️ Iniciar recorrido
-          </button>
-          
-          <button
-            onClick={detenerRecorrido}
-            disabled={!isAnimating}
-            className="bg-red-500 hover:bg-red-600 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg transition text-sm font-medium"
-          >
-            ⏹️ Detener
-          </button>
-
-          <button
-            onClick={reiniciarRecorrido}
-            disabled={isAnimating}
-            className="bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg transition text-sm font-medium"
-          >
-            🔄 Reiniciar
-          </button>
+          <button onClick={iniciarRecorrido} disabled={isAnimating} className="bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg transition text-sm font-medium">▶️ Iniciar recorrido</button>
+          <button onClick={detenerRecorrido} disabled={!isAnimating} className="bg-red-500 hover:bg-red-600 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg transition text-sm font-medium">⏹️ Detener</button>
+          <button onClick={reiniciarRecorrido} disabled={isAnimating} className="bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg transition text-sm font-medium">🔄 Reiniciar</button>
         </div>
-
-        {/* ===== INDICADOR DE ESTADO ===== */}
         <div className="mb-4 p-3 rounded-lg border text-sm flex items-center gap-3">
           <span className={`inline-block w-2 h-2 rounded-full ${isAnimating ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></span>
-          <span className="text-gray-700">
-            {isAnimating ? '🚛 Camión en movimiento...' : '⏸️ Camión detenido'}
-          </span>
-          {isAnimating && (
-            <span className="text-xs text-green-600">
-              Parada {currentPointIndex + 1} de {rutasData[selectedRuta]?.points.length}
-            </span>
-          )}
+          <span className="text-gray-700">{isAnimating ? '🚛 Camión en movimiento...' : '⏸️ Camión detenido'}</span>
+          {isAnimating && <span className="text-xs text-green-600">Parada {currentPointIndex + 1} de {rutasData[selectedRuta]?.points.length}</span>}
         </div>
-
-        {/* ===== MAPA ===== */}
-        <div 
-          ref={mapRef} 
-          className="w-full h-[500px] rounded-lg border border-gray-200"
-          style={{ minHeight: '400px' }}
-        />
-
-        {/* ===== LEYENDA ===== */}
+        <div ref={mapRef} className="w-full h-[500px] rounded-lg border border-gray-200" style={{ minHeight: '400px' }} />
         <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
           <p className="text-xs font-medium text-gray-700 mb-2">📋 Leyenda:</p>
           <div className="flex flex-wrap gap-4 text-xs text-gray-600">
-            <div className="flex items-center gap-2">
-              <span className="text-lg text-blue-500">🚛</span>
-              <span>Camion en movimiento</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-lg">🏁</span>
-              <span>Inicio/Fin de ruta</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-lg text-green-500">🏠</span>
-              <span>Parada de recolección</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-8 h-1 bg-green-500 rounded"></span>
-              <span>Camino de la ruta</span>
-            </div>
+            <div className="flex items-center gap-2"><span className="text-lg text-blue-500">🚛</span><span>Camion en movimiento</span></div>
+            <div className="flex items-center gap-2"><span className="text-lg">🏁</span><span>Inicio/Fin de ruta</span></div>
+            <div className="flex items-center gap-2"><span className="text-lg text-green-500">🏠</span><span>Parada de recolección</span></div>
+            <div className="flex items-center gap-2"><span className="w-8 h-1 bg-green-500 rounded"></span><span>Camino de la ruta</span></div>
           </div>
         </div>
-
-        {/* ===== INFO DE RUTA ===== */}
         <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
           <p className="text-sm font-medium text-green-800">🚛 Información de la ruta:</p>
           <div className="mt-1 text-xs text-gray-600 space-y-1">
