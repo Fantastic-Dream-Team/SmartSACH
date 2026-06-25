@@ -21,15 +21,6 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [generalError, setGeneralError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
-  const [ubicacion, setUbicacion] = useState('Buscando ubicación...');
-
-  // Simulación de ubicación en tiempo real
-  useState(() => {
-    const timer = setTimeout(() => {
-      setUbicacion('📍 Ubicación encontrada: David, Chiriquí');
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []);
 
   // Validaciones de contraseña
   const validatePassword = (password) => {
@@ -50,13 +41,29 @@ export default function RegisterPage() {
     // Máximo 9 dígitos (3-4-4 o 4-4-4)
     if (numbers.length > 9) return formData.cedula;
     
-    // Aplicar guiones automáticos
-    if (numbers.length <= 3) {
+    // Aplicar guiones automáticos: provincia-grupo-grupo
+    if (numbers.length <= 1) {
       return numbers;
-    } else if (numbers.length <= 7) {
-      return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
+    } else if (numbers.length <= 5) {
+      // Provincia (1-4 dígitos) + guión + grupo
+      if (numbers.length <= 4) {
+        return numbers;
+      } else {
+        // Si el usuario escribe más de 4, separamos con guión
+        return `${numbers.slice(0, 4)}-${numbers.slice(4)}`;
+      }
     } else {
-      return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 9)}`;
+      // Provincia (1-4) + guión + grupo (1-4) + guión + grupo (1-4)
+      const provincia = numbers.slice(0, Math.min(4, numbers.length - 4));
+      const resto = numbers.slice(provincia.length);
+      
+      if (resto.length <= 4) {
+        return `${provincia}-${resto}`;
+      } else {
+        const grupo1 = resto.slice(0, 4);
+        const grupo2 = resto.slice(4);
+        return `${provincia}-${grupo1}-${grupo2}`;
+      }
     }
   };
 
@@ -121,9 +128,9 @@ export default function RegisterPage() {
     if (!formData.cedula.trim()) {
       newErrors.cedula = 'La cédula es obligatoria';
     } else if (!/^\d+$/.test(cedulaLimpia)) {
-      newErrors.cedula = 'Solo números';
+      newErrors.cedula = 'Solo números (sin letras ni caracteres especiales)';
     } else if (cedulaLimpia.length < 7 || cedulaLimpia.length > 9) {
-      newErrors.cedula = 'La cédula debe tener entre 7 y 9 dígitos (ej: 3-127-896 o 7-8965-8965)';
+      newErrors.cedula = 'La cédula debe tener entre 7 y 9 dígitos';
     }
     
     // Correo
@@ -245,7 +252,9 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium text-sm mb-1">Cédula * (7-9 dígitos, ej: 3-127-896)</label>
+            <label className="block text-gray-700 font-medium text-sm mb-1">
+              Cédula * (7-9 dígitos, ej: 3-127-896 o 7-8965-8965)
+            </label>
             <input
               type="text"
               name="cedula"
@@ -257,6 +266,7 @@ export default function RegisterPage() {
               disabled={loading}
             />
             {errors.cedula && <p className="text-red-500 text-xs mt-1">{errors.cedula}</p>}
+            <p className="text-xs text-gray-400 mt-1">Formato: provincia-grupo-grupo (ej: 3-127-896)</p>
           </div>
 
           <div>
@@ -332,13 +342,13 @@ export default function RegisterPage() {
               value={formData.direccion}
               onChange={handleChange}
               className={`w-full px-4 py-2.5 border ${errors.direccion ? 'border-red-300 bg-red-50' : 'border-gray-200'} rounded-lg focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/20 transition-all text-sm`}
-              placeholder="Ej: Calle 92, casa 7, David"
+              placeholder="Ej: Calle 34, casa 17, Boquete"
               disabled={loading}
             />
             {errors.direccion && <p className="text-red-500 text-xs mt-1">{errors.direccion}</p>}
             <div className="mt-2 text-sm text-gray-500 flex items-center gap-2">
-              <span className="text-green-500">🔄</span>
-              <span>{ubicacion}</span>
+              <span className="text-yellow-500">🔄</span>
+              <span className="text-gray-400">Próximamente: Ubicación en tiempo real</span>
             </div>
           </div>
 
