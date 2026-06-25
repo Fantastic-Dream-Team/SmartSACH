@@ -4,9 +4,7 @@ import { Link } from 'react-router-dom';
 const HomePage = () => {
   return (
     <div className="min-h-screen bg-white">
-      {/* ✅ ELIMINADO: el Navbar ya está en App.jsx */}
-
-      {/* Hero Section */}
+      {/* Hero Section - SIN NAVBAR (ya está en App.jsx) */}
       <section 
         className="pt-24 pb-16 px-6 relative min-h-[600px] flex items-center"
         style={{
