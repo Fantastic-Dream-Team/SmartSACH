@@ -1,11 +1,13 @@
 // src/features/home/pages/HomePage.jsx
 import { Link } from 'react-router-dom';
-import Logo from '../../../assets/images/logos/Logoyname.png';
-import LogoBlanco from '../../../assets/images/logos/logoblanco.png';
-import HeroBg from '../../../assets/images/chiriqui.jpg';
-import Camion from '../../../assets/images/camionsach.jpg';
-import Trabajador from '../../../assets/images/trabajador.jpg';
-import TrabajadoresImg from '../../../assets/images/Trabajadores.jpg';
+
+// ✅ Usar rutas absolutas desde src/
+import Logo from '/src/assets/images/logos/Logoyname.png';
+import LogoBlanco from '/src/assets/images/logos/logoblanco.png';
+import HeroBg from '/src/assets/images/chiriqui.jpg';
+import Camion from '/src/assets/images/camionsach.jpg';
+import Trabajador from '/src/assets/images/trabajador.jpg';
+import TrabajadoresImg from '/src/assets/images/Trabajadores.jpg';
 
 const HomePage = () => {
   return (
