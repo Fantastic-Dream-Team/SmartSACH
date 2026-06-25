@@ -1,6 +1,6 @@
-import app from "./app.js";
-import { env } from "./config/env.js";
+import app from './app.js';
+import { PORT } from './config/env.js';
 
-app.listen(env.port, () => {
-  console.log(`SmartSACH-FDT API escuchando en el puerto ${env.port}`);
+app.listen(PORT, () => {
+    console.log(`SmartSACH API escuchando en el puerto ${PORT}`);
 });
