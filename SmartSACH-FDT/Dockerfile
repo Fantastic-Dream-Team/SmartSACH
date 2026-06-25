@@ -5,27 +5,27 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# Copiamos los archivos de dependencias desde el directorio actual
+# Copiamos de manera relativa (ya que Render está situado dentro de Frontend)
 COPY package*.json ./
 
-# Instalamos todos los módulos de node
+# Instalamos las dependencias
 RUN npm install
 
-# Copiamos todo el contenido del directorio actual al contenedor
+# Copiamos el código
 COPY . .
 
-# Compilamos el proyecto con Vite
+# Compilamos el proyecto (Vite generará la carpeta 'dist')
 RUN npm run build
 
 # ==========================================
-# ETAPA 2: Servidor Web de Producción (Nginx)
+# ETAPA 2: Servidor de Producción con Nginx
 # ==========================================
 FROM nginx:alpine
 
-# Copiamos el resultado empaquetado por Vite (carpeta dist) al directorio de Nginx
+# Copiamos la compilación al directorio de Nginx
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Configuración de Nginx adaptada para evitar errores 404 en React Router
+# Configuración obligatoria para evitar errores 404 al recargar páginas en React
 RUN echo 'server { \
     listen 80; \
     location / { \
