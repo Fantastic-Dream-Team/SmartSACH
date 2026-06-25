@@ -5,14 +5,14 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# NOTA: Cambiamos las rutas para asegurarnos de copiar desde la carpeta Frontend
-COPY Frontend/package*.json ./
+# Copiamos los archivos de dependencias desde el directorio actual
+COPY package*.json ./
 
 # Instalamos todos los módulos de node
 RUN npm install
 
-# Copiamos todo el contenido de la carpeta Frontend al contenedor
-COPY Frontend/ .
+# Copiamos todo el contenido del directorio actual al contenedor
+COPY . .
 
 # Compilamos el proyecto con Vite
 RUN npm run build
