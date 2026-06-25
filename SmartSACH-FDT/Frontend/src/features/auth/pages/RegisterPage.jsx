@@ -33,37 +33,23 @@ export default function RegisterPage() {
     return errors;
   };
 
-  // Formatear cédula automáticamente
+  // ===== FORMATO DE CÉDULA PANAMEÑA =====
   const formatCedula = (value) => {
     // Solo números
     const numbers = value.replace(/\D/g, '');
     
-    // Máximo 9 dígitos (3-4-4 o 4-4-4)
-    if (numbers.length > 9) return formData.cedula;
+    // Máximo 8 dígitos (1+3+4 para cédula panameña)
+    if (numbers.length > 8) return formData.cedula;
     
-    // Aplicar guiones automáticos: provincia-grupo-grupo
+    // Aplicar guiones automáticos: X-XXX-XXXX
     if (numbers.length <= 1) {
       return numbers;
-    } else if (numbers.length <= 5) {
-      // Provincia (1-4 dígitos) + guión + grupo
-      if (numbers.length <= 4) {
-        return numbers;
-      } else {
-        // Si el usuario escribe más de 4, separamos con guión
-        return `${numbers.slice(0, 4)}-${numbers.slice(4)}`;
-      }
+    } else if (numbers.length <= 4) {
+      // Primer dígito + guión + resto
+      return `${numbers.slice(0, 1)}-${numbers.slice(1)}`;
     } else {
-      // Provincia (1-4) + guión + grupo (1-4) + guión + grupo (1-4)
-      const provincia = numbers.slice(0, Math.min(4, numbers.length - 4));
-      const resto = numbers.slice(provincia.length);
-      
-      if (resto.length <= 4) {
-        return `${provincia}-${resto}`;
-      } else {
-        const grupo1 = resto.slice(0, 4);
-        const grupo2 = resto.slice(4);
-        return `${provincia}-${grupo1}-${grupo2}`;
-      }
+      // Primer dígito + guión + 3 dígitos + guión + resto
+      return `${numbers.slice(0, 1)}-${numbers.slice(1, 4)}-${numbers.slice(4)}`;
     }
   };
 
@@ -123,14 +109,14 @@ export default function RegisterPage() {
     if (!formData.apellido.trim()) newErrors.apellido = 'El apellido es obligatorio';
     else if (formData.apellido.length > 15) newErrors.apellido = 'Máximo 15 caracteres';
     
-    // Cédula
+    // Cédula panameña (formato: X-XXX-XXXX)
     const cedulaLimpia = formData.cedula.replace(/-/g, '');
     if (!formData.cedula.trim()) {
       newErrors.cedula = 'La cédula es obligatoria';
     } else if (!/^\d+$/.test(cedulaLimpia)) {
       newErrors.cedula = 'Solo números (sin letras ni caracteres especiales)';
-    } else if (cedulaLimpia.length < 7 || cedulaLimpia.length > 9) {
-      newErrors.cedula = 'La cédula debe tener entre 7 y 9 dígitos';
+    } else if (cedulaLimpia.length !== 8) {
+      newErrors.cedula = 'La cédula debe tener exactamente 8 dígitos (ej: 4-786-9998)';
     }
     
     // Correo
@@ -140,7 +126,7 @@ export default function RegisterPage() {
       newErrors.correo = 'Ingresa un correo válido (ej: usuario@dominio.com)';
     }
     
-    // Teléfono
+    // Teléfono (8 dígitos)
     const telefonoLimpio = formData.telefono.replace(/-/g, '');
     if (formData.telefono.trim() && !/^\d+$/.test(telefonoLimpio)) {
       newErrors.telefono = 'Solo números';
@@ -253,7 +239,7 @@ export default function RegisterPage() {
 
           <div>
             <label className="block text-gray-700 font-medium text-sm mb-1">
-              Cédula * (7-9 dígitos, ej: 3-127-896 o 7-8965-8965)
+              Cédula * (8 dígitos, ej: 4-786-9998)
             </label>
             <input
               type="text"
@@ -261,12 +247,12 @@ export default function RegisterPage() {
               value={formData.cedula}
               onChange={handleChange}
               className={`w-full px-4 py-2.5 border ${errors.cedula ? 'border-red-300 bg-red-50' : 'border-gray-200'} rounded-lg focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/20 transition-all text-sm`}
-              placeholder="3-127-896"
-              maxLength={11}
+              placeholder="4-786-9998"
+              maxLength={9}
               disabled={loading}
             />
             {errors.cedula && <p className="text-red-500 text-xs mt-1">{errors.cedula}</p>}
-            <p className="text-xs text-gray-400 mt-1">Formato: provincia-grupo-grupo (ej: 3-127-896)</p>
+            <p className="text-xs text-gray-400 mt-1">Formato: X-XXX-XXXX (ej: 4-786-9998)</p>
           </div>
 
           <div>
