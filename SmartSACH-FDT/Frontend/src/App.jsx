@@ -34,16 +34,10 @@ export default function App() {
     setToken(getToken());
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setToken(null);
-  };
-
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        <Navbar /> {/* Mismo Navbar para toda la app */}
         <Routes>
           {/* Rutas públicas */}
           <Route path="/" element={<HomePage />} />
@@ -51,7 +45,7 @@ export default function App() {
           <Route path="/login" element={<LoginPage onLoginSuccess={handleLoginSuccess} />} />
           <Route path="/register" element={<RegisterPage />} />
 
-          {/* Rutas protegidas */}
+          {/* Rutas protegidas (usando el mismo Navbar) */}
           <Route
             path="/perfil"
             element={
@@ -101,7 +95,7 @@ export default function App() {
                     <div className="w-12 h-12 rounded-full border-4 border-green-600 border-t-transparent animate-spin" />
                   </div>
                 }>
-                  <DashboardPage onLogout={handleLogout} />
+                  <DashboardPage />
                 </Suspense>
               </ProtectedRoute>
             }

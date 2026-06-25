@@ -1,165 +1,140 @@
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-
-const navLinks = [
-    { label: "Inicio", path: "/" },
-    { label: "Perfil", path: "/perfil" },
-    { label: "Pagos", path: "/pagos" },
-    { label: "Nosotros", path: "/nosotros" },
-    { label: "Ayuda", path: "/ayuda" },
-];
+// Frontend/src/components/Layout/Navbar.jsx
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { getToken, logout } from '../../config/api.js';
 
 export default function Navbar() {
-    const [menuOpen, setMenuOpen] = useState(false);
-    const location = useLocation();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-    return (
-        <nav style={styles.nav}>
-        <div style={styles.container}>
-            {/* Logo */}
-            <Link to="/" style={styles.logo}>
-            <img src="/logo-sach.png" alt="SmartSACH" style={styles.logoImg} />
-            </Link>
+  useEffect(() => {
+    const token = getToken();
+    const storedUser = localStorage.getItem('user');
+    setIsAuthenticated(!!token);
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, [location]);
 
-            {/* Links escritorio */}
-            <ul style={styles.linkList}>
-            {navLinks.map((link) => (
-                <li key={link.path}>
-                <Link
-                    to={link.path}
-                    style={{
-                    ...styles.link,
-                    ...(location.pathname === link.path ? styles.linkActive : {}),
-                    }}
-                >
-                    {link.label}
-                </Link>
-                </li>
-            ))}
-            </ul>
+  const handleLogout = () => {
+    logout();
+    setIsAuthenticated(false);
+    setUser(null);
+    navigate('/');
+  };
 
-            {/* Botón hamburguesa (móvil) */}
-            <button
-            style={styles.hamburger}
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Abrir menú"
+  // Links para usuarios NO autenticados
+  const publicLinks = [
+    { path: '/', label: '🏠 Home' },
+    { path: '/planes', label: '📋 Planes' },
+    { path: '/login', label: '🔑 Iniciar Sesión' },
+    { path: '/register', label: '📝 Registrarse' },
+  ];
+
+  // Links para usuarios autenticados
+  const privateLinks = [
+    { path: '/', label: '🏠 Home' },
+    { path: '/perfil', label: '👤 Perfil' },
+    { path: '/mapa', label: '🗺️ Mapa' },
+    { path: '/pagos', label: '💰 Pagos' },
+    { path: '/suscripcion', label: '📋 Suscripción' },
+  ];
+
+  const links = isAuthenticated ? privateLinks : publicLinks;
+
+  return (
+    <header className="bg-gradient-to-r from-green-800 to-green-600 text-white shadow-lg sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center flex-wrap gap-4">
+        {/* Logo */}
+        <Link to="/" className="text-xl font-bold flex items-center gap-2">
+          <span className="text-2xl">♻️</span>
+          <span>SmartSACH</span>
+        </Link>
+
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center gap-1">
+          {links.map((link) => (
+            <Link
+              key={link.path}
+              to={link.path}
+              className={`px-4 py-2 rounded-lg transition text-sm font-medium ${
+                location.pathname === link.path
+                  ? 'bg-white/20 text-white'
+                  : 'hover:bg-white/10 text-white/80'
+              }`}
             >
-            <span style={styles.bar} />
-            <span style={styles.bar} />
-            <span style={styles.bar} />
-            </button>
+              {link.label}
+            </Link>
+          ))}
+
+          {isAuthenticated && (
+            <div className="flex items-center gap-3 ml-4 border-l border-white/20 pl-4">
+              <span className="text-sm text-white/90">
+                👋 {user?.nombre || 'Usuario'}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg transition text-sm font-medium"
+              >
+                Cerrar Sesión
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Menú móvil */}
-        {menuOpen && (
-            <ul style={styles.mobileMenu}>
-            {navLinks.map((link) => (
-                <li key={link.path}>
-                <Link
-                    to={link.path}
-                    style={{
-                    ...styles.mobileLink,
-                    ...(location.pathname === link.path
-                        ? styles.mobileLinkActive
-                        : {}),
-                    }}
-                    onClick={() => setMenuOpen(false)}
-                >
-                    {link.label}
-                </Link>
-                </li>
-            ))}
-            </ul>
-        )}
-        </nav>
-    );
+        {/* Mobile menu button */}
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="md:hidden p-2 rounded-lg hover:bg-white/10 transition"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {isMobileMenuOpen ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            )}
+          </svg>
+        </button>
+      </div>
+
+      {/* Mobile Navigation */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden py-4 border-t border-white/10">
+          {links.map((link) => (
+            <Link
+              key={link.path}
+              to={link.path}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`block px-4 py-2 rounded-lg transition text-sm ${
+                location.pathname === link.path
+                  ? 'bg-white/20 text-white'
+                  : 'hover:bg-white/10 text-white/80'
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
+          {isAuthenticated && (
+            <>
+              <div className="px-4 py-2 text-sm text-white/80">
+                👋 {user?.nombre || 'Usuario'}
+              </div>
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="w-full text-left px-4 py-2 text-sm text-red-300 hover:bg-white/10 rounded-lg transition"
+              >
+                Cerrar Sesión
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </header>
+  );
 }
-
-const VERDE = "#2d6a4f";
-const VERDE_OSCURO = "#1b4332";
-
-const styles = {
-    nav: {
-        backgroundColor: VERDE_OSCURO,
-        position: "sticky",
-        top: 0,
-        zIndex: 1000,
-        boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-    },
-    container: {
-        maxWidth: "1100px",
-        margin: "0 auto",
-        padding: "0 1.5rem",
-        height: "56px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-    },
-    logo: {
-        display: "flex",
-        alignItems: "center",
-        textDecoration: "none",
-    },
-    logoImg: {
-        height: "36px",
-        objectFit: "contain",
-    },
-    linkList: {
-        display: "flex",
-        gap: "0.25rem",
-        listStyle: "none",
-        margin: 0,
-        padding: 0,
-    },
-    link: {
-        color: "#d8f3dc",
-        textDecoration: "none",
-        fontSize: "14px",
-        fontWeight: "500",
-        padding: "6px 14px",
-        borderRadius: "6px",
-        transition: "background 0.2s, color 0.2s",
-    },
-    linkActive: {
-        backgroundColor: VERDE,
-        color: "#ffffff",
-    },
-    hamburger: {
-        display: "none",
-        flexDirection: "column",
-        gap: "5px",
-        background: "none",
-        border: "none",
-        cursor: "pointer",
-        padding: "4px",
-    },
-    bar: {
-        display: "block",
-        width: "22px",
-        height: "2px",
-        backgroundColor: "#d8f3dc",
-        borderRadius: "2px",
-    },
-    mobileMenu: {
-        listStyle: "none",
-        margin: 0,
-        padding: "0.5rem 1.5rem 1rem",
-        backgroundColor: VERDE_OSCURO,
-        borderTop: `1px solid ${VERDE}`,
-        display: "flex",
-        flexDirection: "column",
-        gap: "4px",
-    },
-    mobileLink: {
-        display: "block",
-        color: "#d8f3dc",
-        textDecoration: "none",
-        fontSize: "15px",
-        padding: "10px 12px",
-        borderRadius: "6px",
-    },
-    mobileLinkActive: {
-        backgroundColor: VERDE,
-        color: "#ffffff",
-    },
-};
