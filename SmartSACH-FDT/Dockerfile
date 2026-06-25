@@ -1,23 +1,40 @@
-FROM node:20-alpine
+# ==========================================
+# ETAPA 1: Compilación de la App con Vite
+# ==========================================
+FROM node:20-alpine AS build
 
 WORKDIR /app
 
-ENV NODE_ENV=production
+# Copiamos los manifiestos de dependencias
+COPY package*.json ./
 
-COPY SmartSACH-FDT/Backend/package*.json ./Backend/
+# Instalamos todas las librerías necesarias (incluyendo Leaflet y React Router)
+RUN npm install
 
-WORKDIR /app/Backend
-RUN npm ci --omit=dev
+# Copiamos el resto de los archivos del frontend
+COPY . .
 
-WORKDIR /app
-COPY SmartSACH-FDT/Backend ./Backend
-COPY SmartSACH-FDT/Frontend ./Frontend
-RUN chown -R node:node /app
+# Compilamos el proyecto. Vite generará todo el código en la carpeta 'dist'
+RUN npm run build
 
-WORKDIR /app/Backend
+# ==========================================
+# ETAPA 2: Servidor Web de Producción (Nginx)
+# ==========================================
+FROM nginx:alpine
 
-USER node
+# Copiamos el resultado de la compilación de Vite al directorio de Nginx
+COPY --from=build /app/dist /usr/share/nginx/html
 
-EXPOSE 10000
+# Copiamos una configuración personalizada para que Nginx no dé errores 404 con las rutas de React
+RUN echo 'server { \
+    listen 80; \
+    location / { \
+        root /usr/share/nginx/html; \
+        index index.html index.htm; \
+        try_files $uri $uri/ /index.html; \
+    } \
+}' > /etc/nginx/conf.d/default.conf
 
-CMD ["node", "src/server.js"]
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
