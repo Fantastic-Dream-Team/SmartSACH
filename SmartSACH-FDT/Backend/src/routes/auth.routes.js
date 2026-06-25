@@ -34,7 +34,7 @@ router.post('/register', async (req, res) => {
         // Hash de la contraseña
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Insertar usuario en Supabase (usando las columnas exactas de tu tabla)
+        // Insertar usuario en Supabase
         const { data: newUser, error } = await supabase
             .from('usuarios')
             .insert([
@@ -42,12 +42,12 @@ router.post('/register', async (req, res) => {
                     nombre: nombre,
                     apellido: apellido,
                     cedula: cedula,
-                    correo_electronico: correo,  // ⬅️ Coincide con tu columna
-                    password: hashedPassword,     // ⬅️ Coincide con tu columna
-                    estado_verificacion: 'activo' // ⬅️ Lo activamos directamente
+                    correo_electronico: correo,
+                    password: hashedPassword,  // ✅ CORRECTO: usa 'password'
+                    estado_verificacion: 'activo'
                 },
             ])
-            .select('usuario_id, nombre, apellido, cedula, correo_electronico, estado_verificacion, fecha_registro')
+            .select('usuario_id, nombre, apellido, cedula, correo_electronico, password, estado_verificacion, fecha_registro')
             .single();
 
         if (error) {
