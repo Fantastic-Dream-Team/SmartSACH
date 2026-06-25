@@ -14,22 +14,89 @@ export default function RegisterPage() {
     password: '',
     confirmPassword: '',
     direccion: '',
-    descripcion: '',
-    latitud: 8.4286,
-    longitud: -82.4319
+    detalleAdicional: '',
   });
   const [errors, setErrors] = useState({});
+  const [passwordErrors, setPasswordErrors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [generalError, setGeneralError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [ubicacion, setUbicacion] = useState('Buscando ubicación...');
+
+  // Simulación de ubicación en tiempo real
+  useState(() => {
+    const timer = setTimeout(() => {
+      setUbicacion('📍 Ubicación encontrada: David, Chiriquí');
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Validaciones de contraseña
+  const validatePassword = (password) => {
+    const errors = [];
+    if (password.length < 8) errors.push('❌ Debe tener al menos 8 caracteres');
+    if (!/[A-Z]/.test(password)) errors.push('❌ Debe tener al menos una mayúscula');
+    if (!/[a-z]/.test(password)) errors.push('❌ Debe tener al menos una minúscula');
+    if (!/[0-9]/.test(password)) errors.push('❌ Debe tener al menos un número');
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) errors.push('❌ Debe tener al menos un símbolo (!@#$%^&*)');
+    return errors;
+  };
+
+  // Formatear cédula automáticamente
+  const formatCedula = (value) => {
+    // Solo números
+    const numbers = value.replace(/\D/g, '');
+    
+    // Máximo 9 dígitos (3-4-4 o 4-4-4)
+    if (numbers.length > 9) return formData.cedula;
+    
+    // Aplicar guiones automáticos
+    if (numbers.length <= 3) {
+      return numbers;
+    } else if (numbers.length <= 7) {
+      return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
+    } else {
+      return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 9)}`;
+    }
+  };
+
+  // Formatear teléfono automáticamente
+  const formatTelefono = (value) => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length > 8) return formData.telefono;
+    if (numbers.length <= 4) return numbers;
+    return `${numbers.slice(0, 4)}-${numbers.slice(4)}`;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    let formattedValue = value;
+
+    if (name === 'cedula') {
+      formattedValue = formatCedula(value);
+    }
+    if (name === 'telefono') {
+      formattedValue = formatTelefono(value);
+    }
+    if (name === 'nombre' || name === 'apellido') {
+      if (value.length > 15) return;
+    }
+    if (name === 'detalleAdicional') {
+      if (value.length > 50) return;
+    }
+
+    setFormData({ ...formData, [name]: formattedValue });
+    
+    // Limpiar errores del campo
     if (errors[name]) {
       const newErrors = { ...errors };
       delete newErrors[name];
       setErrors(newErrors);
+    }
+
+    // Validar contraseña en tiempo real
+    if (name === 'password') {
+      setPasswordErrors(validatePassword(value));
     }
   };
 
@@ -39,24 +106,54 @@ export default function RegisterPage() {
     setGeneralError('');
     setSuccessMsg('');
 
-    // Validaciones básicas en cliente
+    // Validaciones
     const newErrors = {};
+    
+    // Nombre y apellido
     if (!formData.nombre.trim()) newErrors.nombre = 'El nombre es obligatorio';
+    else if (formData.nombre.length > 15) newErrors.nombre = 'Máximo 15 caracteres';
+    
     if (!formData.apellido.trim()) newErrors.apellido = 'El apellido es obligatorio';
-    if (!formData.cedula.trim()) newErrors.cedula = 'La cédula es obligatoria';
+    else if (formData.apellido.length > 15) newErrors.apellido = 'Máximo 15 caracteres';
+    
+    // Cédula
+    const cedulaLimpia = formData.cedula.replace(/-/g, '');
+    if (!formData.cedula.trim()) {
+      newErrors.cedula = 'La cédula es obligatoria';
+    } else if (!/^\d+$/.test(cedulaLimpia)) {
+      newErrors.cedula = 'Solo números';
+    } else if (cedulaLimpia.length < 7 || cedulaLimpia.length > 9) {
+      newErrors.cedula = 'La cédula debe tener entre 7 y 9 dígitos (ej: 3-127-896 o 7-8965-8965)';
+    }
+    
+    // Correo
     if (!formData.correo.trim()) {
       newErrors.correo = 'El correo es obligatorio';
-    } else if (!formData.correo.includes('@')) {
-      newErrors.correo = 'Ingresa un correo válido';
+    } else if (!formData.correo.includes('@') || !formData.correo.includes('.')) {
+      newErrors.correo = 'Ingresa un correo válido (ej: usuario@dominio.com)';
     }
+    
+    // Teléfono
+    const telefonoLimpio = formData.telefono.replace(/-/g, '');
+    if (formData.telefono.trim() && !/^\d+$/.test(telefonoLimpio)) {
+      newErrors.telefono = 'Solo números';
+    } else if (formData.telefono.trim() && telefonoLimpio.length !== 8) {
+      newErrors.telefono = 'Debe tener 8 dígitos (ej: 6589-8962)';
+    }
+    
+    // Contraseña
     if (!formData.password) {
       newErrors.password = 'La contraseña es obligatoria';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
+    } else if (passwordErrors.length > 0) {
+      newErrors.password = 'La contraseña no cumple los requisitos';
     }
+    
+    // Confirmar contraseña
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Las contraseñas no coinciden';
     }
+    
+    // Dirección
     if (!formData.direccion.trim()) {
       newErrors.direccion = 'La dirección es obligatoria';
     }
@@ -68,19 +165,17 @@ export default function RegisterPage() {
     }
 
     try {
-      const data = await apiRequest('/api/auth/register', {
+      await apiRequest('/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           nombre: formData.nombre,
           apellido: formData.apellido,
-          cedula: formData.cedula,
+          cedula: formData.cedula.replace(/-/g, ''),
           correo: formData.correo,
-          telefono: formData.telefono,
+          telefono: formData.telefono.replace(/-/g, ''),
           password: formData.password,
           direccion: formData.direccion,
-          descripcion: formData.descripcion,
-          latitud: formData.latitud,
-          longitud: formData.longitud
+          detalleAdicional: formData.detalleAdicional,
         }),
       });
 
@@ -97,197 +192,183 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center p-4">
-      <div className="w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
-        
-        {/* ===== PANEL IZQUIERDO - INFORMATIVO ===== */}
-        <div className="w-full md:w-5/12 bg-gradient-to-br from-green-800 to-green-600 text-white p-8 md:p-12 flex flex-col justify-center">
-          <div className="flex items-center gap-3 mb-6">
-            <img src="/images/logos/logoblanco.png" alt="SmartSACH" className="h-12" />
-            <h2 className="text-2xl font-bold">SmartSACH</h2>
+      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl p-8 md:p-12">
+        <h2 className="text-2xl font-bold text-green-800 text-center mb-2">Crear Cuenta</h2>
+        <p className="text-gray-500 text-center text-sm mb-6">Completa tus datos para registrarte</p>
+
+        {successMsg && (
+          <div className="bg-green-50 text-green-600 p-3 rounded-xl text-sm mb-4 flex items-center gap-2">
+            <span>✅</span>
+            <span>{successMsg}</span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">Únete a SmartSACH</h1>
-          <p className="text-white/80 mb-6 leading-relaxed">
-            Crea tu cuenta y comienza a gestionar tus rutas, pagos y reportes de manera inteligente.
-          </p>
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <span className="text-xl">🗺️</span>
-              <span>Rastreo en tiempo real</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xl">📱</span>
-              <span>Pagos fáciles y rápidos</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xl">📋</span>
-              <span>Reporte de incidencias</span>
-            </div>
+        )}
+
+        {generalError && (
+          <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm mb-4 flex items-center gap-2">
+            <span>⚠️</span>
+            <span>{generalError}</span>
           </div>
-        </div>
+        )}
 
-        {/* ===== PANEL DERECHO - FORMULARIO ===== */}
-        <div className="w-full md:w-7/12 p-6 md:p-10 overflow-y-auto max-h-[90vh]">
-          <div className="text-center mb-4">
-            <h2 className="text-2xl font-bold text-green-800">Crear Cuenta</h2>
-            <p className="text-gray-500 text-sm">Completa tus datos para registrarte</p>
-          </div>
-
-          {successMsg && (
-            <div className="bg-green-50 text-green-600 p-3 rounded-xl text-sm mb-4 flex items-center gap-2">
-              <span>✅</span>
-              <span>{successMsg}</span>
-            </div>
-          )}
-
-          {generalError && (
-            <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm mb-4 flex items-center gap-2">
-              <span>⚠️</span>
-              <span>{generalError}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-gray-700 font-medium text-sm mb-1">Nombre *</label>
-                <input
-                  type="text"
-                  name="nombre"
-                  value={formData.nombre}
-                  onChange={handleChange}
-                  className={`w-full px-3 py-2.5 border ${errors.nombre ? 'border-red-300 bg-red-50' : 'border-gray-200'} rounded-lg focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/20 transition-all text-sm`}
-                  placeholder="Tu nombre"
-                  disabled={loading}
-                />
-                {errors.nombre && <p className="text-red-500 text-xs mt-1">{errors.nombre}</p>}
-              </div>
-              <div>
-                <label className="block text-gray-700 font-medium text-sm mb-1">Apellido *</label>
-                <input
-                  type="text"
-                  name="apellido"
-                  value={formData.apellido}
-                  onChange={handleChange}
-                  className={`w-full px-3 py-2.5 border ${errors.apellido ? 'border-red-300 bg-red-50' : 'border-gray-200'} rounded-lg focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/20 transition-all text-sm`}
-                  placeholder="Tu apellido"
-                  disabled={loading}
-                />
-                {errors.apellido && <p className="text-red-500 text-xs mt-1">{errors.apellido}</p>}
-              </div>
-            </div>
-
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-gray-700 font-medium text-sm mb-1">Cédula *</label>
+              <label className="block text-gray-700 font-medium text-sm mb-1">Nombre * (max 15)</label>
               <input
                 type="text"
-                name="cedula"
-                value={formData.cedula}
+                name="nombre"
+                value={formData.nombre}
                 onChange={handleChange}
-                className={`w-full px-3 py-2.5 border ${errors.cedula ? 'border-red-300 bg-red-50' : 'border-gray-200'} rounded-lg focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/20 transition-all text-sm`}
-                placeholder="Ej: 4-826-1202"
+                className={`w-full px-4 py-2.5 border ${errors.nombre ? 'border-red-300 bg-red-50' : 'border-gray-200'} rounded-lg focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/20 transition-all text-sm`}
+                placeholder="Juan"
+                maxLength={15}
                 disabled={loading}
               />
-              {errors.cedula && <p className="text-red-500 text-xs mt-1">{errors.cedula}</p>}
+              {errors.nombre && <p className="text-red-500 text-xs mt-1">{errors.nombre}</p>}
+              <p className="text-xs text-gray-400 mt-1">{formData.nombre.length}/15</p>
             </div>
-
             <div>
-              <label className="block text-gray-700 font-medium text-sm mb-1">Correo electrónico *</label>
-              <input
-                type="email"
-                name="correo"
-                value={formData.correo}
-                onChange={handleChange}
-                className={`w-full px-3 py-2.5 border ${errors.correo ? 'border-red-300 bg-red-50' : 'border-gray-200'} rounded-lg focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/20 transition-all text-sm`}
-                placeholder="tu@email.com"
-                disabled={loading}
-              />
-              {errors.correo && <p className="text-red-500 text-xs mt-1">{errors.correo}</p>}
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium text-sm mb-1">Teléfono</label>
-              <input
-                type="tel"
-                name="telefono"
-                value={formData.telefono}
-                onChange={handleChange}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/20 transition-all text-sm"
-                placeholder="+507 6123-4567"
-                disabled={loading}
-              />
-              {errors.telefono && <p className="text-red-500 text-xs mt-1">{errors.telefono}</p>}
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-gray-700 font-medium text-sm mb-1">Contraseña *</label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className={`w-full px-3 py-2.5 border ${errors.password ? 'border-red-300 bg-red-50' : 'border-gray-200'} rounded-lg focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/20 transition-all text-sm`}
-                  placeholder="Mínimo 6 caracteres"
-                  disabled={loading}
-                />
-                {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
-              </div>
-              <div>
-                <label className="block text-gray-700 font-medium text-sm mb-1">Confirmar contraseña *</label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className={`w-full px-3 py-2.5 border ${errors.confirmPassword ? 'border-red-300 bg-red-50' : 'border-gray-200'} rounded-lg focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/20 transition-all text-sm`}
-                  placeholder="Confirma tu contraseña"
-                  disabled={loading}
-                />
-                {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium text-sm mb-1">Dirección de recolección *</label>
+              <label className="block text-gray-700 font-medium text-sm mb-1">Apellido * (max 15)</label>
               <input
                 type="text"
-                name="direccion"
-                value={formData.direccion}
+                name="apellido"
+                value={formData.apellido}
                 onChange={handleChange}
-                className={`w-full px-3 py-2.5 border ${errors.direccion ? 'border-red-300 bg-red-50' : 'border-gray-200'} rounded-lg focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/20 transition-all text-sm`}
-                placeholder="Calle, sector, referencia"
+                className={`w-full px-4 py-2.5 border ${errors.apellido ? 'border-red-300 bg-red-50' : 'border-gray-200'} rounded-lg focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/20 transition-all text-sm`}
+                placeholder="Pérez"
+                maxLength={15}
                 disabled={loading}
               />
-              {errors.direccion && <p className="text-red-500 text-xs mt-1">{errors.direccion}</p>}
+              {errors.apellido && <p className="text-red-500 text-xs mt-1">{errors.apellido}</p>}
+              <p className="text-xs text-gray-400 mt-1">{formData.apellido.length}/15</p>
             </div>
+          </div>
 
-            <div>
-              <label className="block text-gray-700 font-medium text-sm mb-1">Descripción</label>
-              <textarea
-                name="descripcion"
-                value={formData.descripcion}
-                onChange={handleChange}
-                rows="2"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/20 transition-all text-sm"
-                placeholder="Puntos de referencia"
-                disabled={loading}
-              />
-              {errors.descripcion && <p className="text-red-500 text-xs mt-1">{errors.descripcion}</p>}
-            </div>
-
-            <button
-              type="submit"
+          <div>
+            <label className="block text-gray-700 font-medium text-sm mb-1">Cédula * (7-9 dígitos, ej: 3-127-896)</label>
+            <input
+              type="text"
+              name="cedula"
+              value={formData.cedula}
+              onChange={handleChange}
+              className={`w-full px-4 py-2.5 border ${errors.cedula ? 'border-red-300 bg-red-50' : 'border-gray-200'} rounded-lg focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/20 transition-all text-sm`}
+              placeholder="3-127-896"
+              maxLength={11}
               disabled={loading}
-              className="w-full bg-gradient-to-r from-green-700 to-green-600 text-white py-3 rounded-xl font-semibold transition-all hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed text-sm"
-            >
-              {loading ? 'Registrando...' : 'Registrarse'}
-            </button>
+            />
+            {errors.cedula && <p className="text-red-500 text-xs mt-1">{errors.cedula}</p>}
+          </div>
 
-            <p className="text-center text-gray-500 text-sm mt-2">
-              ¿Ya tienes cuenta? <Link to="/login" className="text-green-700 font-semibold hover:underline">Inicia sesión aquí</Link>
-            </p>
-          </form>
-        </div>
+          <div>
+            <label className="block text-gray-700 font-medium text-sm mb-1">Correo electrónico *</label>
+            <input
+              type="email"
+              name="correo"
+              value={formData.correo}
+              onChange={handleChange}
+              className={`w-full px-4 py-2.5 border ${errors.correo ? 'border-red-300 bg-red-50' : 'border-gray-200'} rounded-lg focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/20 transition-all text-sm`}
+              placeholder="tu@email.com"
+              disabled={loading}
+            />
+            {errors.correo && <p className="text-red-500 text-xs mt-1">{errors.correo}</p>}
+          </div>
+
+          <div>
+            <label className="block text-gray-700 font-medium text-sm mb-1">Teléfono (8 dígitos, ej: 6589-8962)</label>
+            <input
+              type="text"
+              name="telefono"
+              value={formData.telefono}
+              onChange={handleChange}
+              className={`w-full px-4 py-2.5 border ${errors.telefono ? 'border-red-300 bg-red-50' : 'border-gray-200'} rounded-lg focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/20 transition-all text-sm`}
+              placeholder="6589-8962"
+              maxLength={9}
+              disabled={loading}
+            />
+            {errors.telefono && <p className="text-red-500 text-xs mt-1">{errors.telefono}</p>}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-gray-700 font-medium text-sm mb-1">Contraseña *</label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className={`w-full px-4 py-2.5 border ${errors.password ? 'border-red-300 bg-red-50' : 'border-gray-200'} rounded-lg focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/20 transition-all text-sm`}
+                placeholder="8+ caracteres"
+                disabled={loading}
+              />
+              {passwordErrors.length > 0 && (
+                <div className="mt-1 space-y-1">
+                  {passwordErrors.map((err, i) => (
+                    <p key={i} className="text-red-500 text-xs">{err}</p>
+                  ))}
+                </div>
+              )}
+              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+            </div>
+            <div>
+              <label className="block text-gray-700 font-medium text-sm mb-1">Confirmar contraseña *</label>
+              <input
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className={`w-full px-4 py-2.5 border ${errors.confirmPassword ? 'border-red-300 bg-red-50' : 'border-gray-200'} rounded-lg focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/20 transition-all text-sm`}
+                placeholder="Confirma tu contraseña"
+                disabled={loading}
+              />
+              {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-gray-700 font-medium text-sm mb-1">Dirección de recolección *</label>
+            <input
+              type="text"
+              name="direccion"
+              value={formData.direccion}
+              onChange={handleChange}
+              className={`w-full px-4 py-2.5 border ${errors.direccion ? 'border-red-300 bg-red-50' : 'border-gray-200'} rounded-lg focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/20 transition-all text-sm`}
+              placeholder="Ej: Calle 92, casa 7, David"
+              disabled={loading}
+            />
+            {errors.direccion && <p className="text-red-500 text-xs mt-1">{errors.direccion}</p>}
+            <div className="mt-2 text-sm text-gray-500 flex items-center gap-2">
+              <span className="text-green-500">🔄</span>
+              <span>{ubicacion}</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-gray-700 font-medium text-sm mb-1">Detalle adicional (máximo 50 caracteres)</label>
+            <textarea
+              name="detalleAdicional"
+              value={formData.detalleAdicional}
+              onChange={handleChange}
+              rows="2"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/20 transition-all text-sm"
+              placeholder="Ej: Puntos de referencia, indicaciones para el recolector..."
+              maxLength={50}
+              disabled={loading}
+            />
+            <p className="text-xs text-gray-400 mt-1">{formData.detalleAdicional.length}/50</p>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-green-700 to-green-600 text-white py-3 rounded-xl font-semibold transition-all hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed text-sm"
+          >
+            {loading ? 'Registrando...' : 'Registrarse'}
+          </button>
+        </form>
+
+        <p className="text-center text-gray-500 text-sm mt-4">
+          ¿Ya tienes cuenta? <Link to="/login" className="text-green-700 font-semibold hover:underline">Inicia sesión aquí</Link>
+        </p>
       </div>
     </div>
   );
