@@ -39,13 +39,13 @@ export default function PlanesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white py-12 px-4">
       <div className="max-w-5xl mx-auto">
-        {/* ===== FLECHA VOLVER ===== */}
+        {/* ===== FLECHA VOLVER AL HOME ===== */}
         <Link 
           to="/" 
-          className="inline-flex items-center gap-2 text-green-700 hover:text-green-800 transition mb-6"
+          className="inline-flex items-center gap-2 text-green-700 hover:text-green-800 transition group mb-6"
         >
-          <span className="text-2xl">←</span>
-          <span>Volver al Home</span>
+          <span className="text-2xl group-hover:-translate-x-1 transition-transform">←</span>
+          <span className="text-sm font-medium">Volver al Home</span>
         </Link>
 
         <h1 className="text-4xl font-bold text-center text-green-800 mb-4">
@@ -86,6 +86,7 @@ export default function PlanesPage() {
                 </ul>
                 <Link
                   to="/register"
+                  state={{ from: 'planes' }}
                   className="mt-8 block w-full text-center bg-gradient-to-r from-green-700 to-green-600 text-white py-3 rounded-xl font-semibold transition hover:shadow-lg hover:-translate-y-0.5"
                 >
                   Suscribirse ahora

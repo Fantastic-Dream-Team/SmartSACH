@@ -1,10 +1,11 @@
 // src/features/auth/pages/RegisterPage.jsx
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { apiRequest } from '../../../config/api.js';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [formData, setFormData] = useState({
     nombre: '',
     apellido: '',
@@ -22,6 +23,9 @@ export default function RegisterPage() {
   const [generalError, setGeneralError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
+  // Verificar si viene desde la página de Planes
+  const fromPlanes = location.state?.from === 'planes';
+
   // Validaciones de contraseña
   const validatePassword = (password) => {
     const errors = [];
@@ -35,10 +39,7 @@ export default function RegisterPage() {
 
   // ===== FORMATO DE CÉDULA PANAMEÑA =====
   const formatCedula = (value) => {
-    // Solo números
     const numbers = value.replace(/\D/g, '');
-    
-    // Máximo 9 dígitos
     if (numbers.length > 9) return formData.cedula;
     
     if (numbers.length <= 1) {
@@ -48,21 +49,18 @@ export default function RegisterPage() {
     } else if (numbers.length === 4) {
       return `${numbers.slice(0, 1)}-${numbers.slice(1)}`;
     } else if (numbers.length <= 5) {
-      // X-XXXX o XX-XXX (provincia de 2 dígitos)
       if (numbers.startsWith('1') && numbers.length >= 2) {
         return `${numbers.slice(0, 2)}-${numbers.slice(2)}`;
       } else {
         return `${numbers.slice(0, 1)}-${numbers.slice(1)}`;
       }
     } else if (numbers.length <= 7) {
-      // X-XXX-XX o X-XXXX-XX o XX-XXX-XX
       if (numbers.startsWith('1') && numbers.length >= 2) {
         return `${numbers.slice(0, 2)}-${numbers.slice(2, 5)}-${numbers.slice(5)}`;
       } else {
         return `${numbers.slice(0, 1)}-${numbers.slice(1, 4)}-${numbers.slice(4)}`;
       }
     } else {
-      // Formato final
       if (numbers.startsWith('1') && numbers.length >= 2) {
         return `${numbers.slice(0, 2)}-${numbers.slice(2, 5)}-${numbers.slice(5)}`;
       } else if (numbers.length === 8) {
@@ -73,7 +71,6 @@ export default function RegisterPage() {
     }
   };
 
-  // Formatear teléfono automáticamente
   const formatTelefono = (value) => {
     const numbers = value.replace(/\D/g, '');
     if (numbers.length > 8) return formData.telefono;
@@ -100,14 +97,12 @@ export default function RegisterPage() {
 
     setFormData({ ...formData, [name]: formattedValue });
     
-    // Limpiar errores del campo
     if (errors[name]) {
       const newErrors = { ...errors };
       delete newErrors[name];
       setErrors(newErrors);
     }
 
-    // Validar contraseña en tiempo real
     if (name === 'password') {
       setPasswordErrors(validatePassword(value));
     }
@@ -119,17 +114,14 @@ export default function RegisterPage() {
     setGeneralError('');
     setSuccessMsg('');
 
-    // Validaciones
     const newErrors = {};
     
-    // Nombre y apellido
     if (!formData.nombre.trim()) newErrors.nombre = 'El nombre es obligatorio';
     else if (formData.nombre.length > 15) newErrors.nombre = 'Máximo 15 caracteres';
     
     if (!formData.apellido.trim()) newErrors.apellido = 'El apellido es obligatorio';
     else if (formData.apellido.length > 15) newErrors.apellido = 'Máximo 15 caracteres';
     
-    // Cédula (8-9 dígitos)
     const cedulaLimpia = formData.cedula.replace(/-/g, '');
     if (!formData.cedula.trim()) {
       newErrors.cedula = 'La cédula es obligatoria';
@@ -139,14 +131,12 @@ export default function RegisterPage() {
       newErrors.cedula = 'La cédula debe tener 8 o 9 dígitos (ej: 4-789-962, 4-7896-962 o 10-789-962)';
     }
     
-    // Correo
     if (!formData.correo.trim()) {
       newErrors.correo = 'El correo es obligatorio';
     } else if (!formData.correo.includes('@') || !formData.correo.includes('.')) {
       newErrors.correo = 'Ingresa un correo válido (ej: usuario@dominio.com)';
     }
     
-    // Teléfono (8 dígitos)
     const telefonoLimpio = formData.telefono.replace(/-/g, '');
     if (formData.telefono.trim() && !/^\d+$/.test(telefonoLimpio)) {
       newErrors.telefono = 'Solo números';
@@ -154,19 +144,16 @@ export default function RegisterPage() {
       newErrors.telefono = 'Debe tener 8 dígitos (ej: 6589-8962)';
     }
     
-    // Contraseña
     if (!formData.password) {
       newErrors.password = 'La contraseña es obligatoria';
     } else if (passwordErrors.length > 0) {
       newErrors.password = 'La contraseña no cumple los requisitos';
     }
     
-    // Confirmar contraseña
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Las contraseñas no coinciden';
     }
     
-    // Dirección
     if (!formData.direccion.trim()) {
       newErrors.direccion = 'La dirección es obligatoria';
     }
@@ -206,6 +193,19 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center p-4">
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl p-8 md:p-12">
+        {/* ===== FLECHA VOLVER ===== */}
+        <div className="flex items-center gap-3 mb-4">
+          <Link 
+            to={fromPlanes ? "/planes" : "/"} 
+            className="inline-flex items-center gap-2 text-green-700 hover:text-green-800 transition group"
+          >
+            <span className="text-2xl group-hover:-translate-x-1 transition-transform">←</span>
+            <span className="text-sm font-medium">
+              {fromPlanes ? "Volver a Planes" : "Volver al Home"}
+            </span>
+          </Link>
+        </div>
+
         <h2 className="text-2xl font-bold text-green-800 text-center mb-2">Crear Cuenta</h2>
         <p className="text-gray-500 text-center text-sm mb-6">Completa tus datos para registrarte</p>
 
