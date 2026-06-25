@@ -1,16 +1,7 @@
-import express from 'express';
-import cors from 'cors';
-import authRouter from './routes/auth.routes.js';
+// Backend/src/config/database.js
+import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_KEY } from './env.js';
 
-const app = express();
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-app.use(cors());
-app.use(express.json());
-
-app.use('/api/auth', authRouter);
-
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', message: 'Servidor funcionando' });
-});
-
-export default app;
+export default supabase;
