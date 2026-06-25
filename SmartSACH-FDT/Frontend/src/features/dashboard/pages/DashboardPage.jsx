@@ -2,8 +2,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../../../config/api.js';
-import DashboardNav from '../components/DashboardNav.jsx';
-import InicioTab from '../components/InicioTab.jsx';
 import PerfilTab from '../components/PerfilTab.jsx';
 import MapaTab from '../components/MapaTab.jsx';
 import PagosTab from '../components/PagosTab.jsx';
@@ -12,7 +10,7 @@ import SuscripcionTab from '../components/SuscripcionTab.jsx';
 export default function DashboardPage({ onLogout }) {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('inicio');
+  const [activeTab, setActiveTab] = useState('perfil');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,7 +38,6 @@ export default function DashboardPage({ onLogout }) {
   }
 
   const tabComponents = {
-    inicio: <InicioTab user={user} />,
     perfil: <PerfilTab user={user} />,
     mapa: <MapaTab />,
     pagos: <PagosTab />,
@@ -49,14 +46,9 @@ export default function DashboardPage({ onLogout }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardNav 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-        user={user} 
-        onLogout={handleLogout} 
-      />
+      {/* ✅ ELIMINADO: <DashboardNav ... /> */}
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {tabComponents[activeTab] || <InicioTab user={user} />}
+        {tabComponents[activeTab] || <PerfilTab user={user} />}
       </div>
     </div>
   );
