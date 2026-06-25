@@ -5,18 +5,16 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# Copiamos los archivos de configuración de dependencias
-COPY package*.json ./
+# NOTA: Cambiamos las rutas para asegurarnos de copiar desde la carpeta Frontend
+COPY Frontend/package*.json ./
 
-# Instalamos todos los módulos de node (incluyendo Leaflet y React Router)
+# Instalamos todos los módulos de node
 RUN npm install
 
-# Copiamos todo el código fuente del proyecto al contenedor
-COPY . .
+# Copiamos todo el contenido de la carpeta Frontend al contenedor
+COPY Frontend/ .
 
-# SOLUCIÓN CRÍTICA: Forzamos a Vite a saber dónde está el punto de entrada.
-# Si index.html no está en la raíz por alguna reestructuración de carpetas,
-# le indicamos a Vite que use el directorio actual explícitamente.
+# Compilamos el proyecto con Vite
 RUN npm run build
 
 # ==========================================
@@ -27,8 +25,7 @@ FROM nginx:alpine
 # Copiamos el resultado empaquetado por Vite (carpeta dist) al directorio de Nginx
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Añadimos una configuración de Nginx adaptada para React Router
-# Esto evita pantallas en blanco o errores 404 al recargar rutas internas de la app
+# Configuración de Nginx adaptada para evitar errores 404 en React Router
 RUN echo 'server { \
     listen 80; \
     location / { \
