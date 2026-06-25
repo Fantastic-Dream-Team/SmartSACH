@@ -1,7 +1,23 @@
-// Backend/src/config/database.js
-import { createClient } from '@supabase/supabase-js';
-import { SUPABASE_URL, SUPABASE_KEY } from './env.js';
+// Backend/src/app.js
+import express from 'express';
+import cors from 'cors';
+import authRouter from './routes/auth.routes.js';
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const app = express();
 
-export default supabase;
+// Middlewares
+app.use(cors());
+app.use(express.json());
+
+// Rutas
+app.use('/api/auth', authRouter);
+
+app.get('/', (req, res) => {
+    res.json({ message: 'SmartSACH API funcionando correctamente' });
+});
+
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', message: 'El servidor está funcionando' });
+});
+
+export default app;
