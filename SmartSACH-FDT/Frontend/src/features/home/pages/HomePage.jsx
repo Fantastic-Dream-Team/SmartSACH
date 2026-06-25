@@ -1,12 +1,13 @@
 // src/features/home/pages/HomePage.jsx
 import { Link } from 'react-router-dom';
+import UbicacionHora from '../../../components/UbicacionHora.jsx';
 
 const HomePage = () => {
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section - SIN NAVBAR (ya está en App.jsx) */}
+      {/* Hero Section */}
       <section 
-        className="pt-24 pb-16 px-6 relative min-h-[600px] flex items-center"
+        className="pt-20 pb-16 px-6 relative min-h-[600px] flex items-center"
         style={{
           backgroundImage: `url('/images/chiriqui.jpg')`,
           backgroundSize: 'cover',
@@ -15,35 +16,28 @@ const HomePage = () => {
       >
         <div className="absolute inset-0 bg-black/50"></div>
         
-        <div className="max-w-7xl mx-auto relative z-10 text-center text-white">
-          <div className="inline-block bg-green-600/80 text-white px-4 py-1 rounded-full text-sm font-medium mb-4">
-            📍 Chiriquí · 12 de junio 8:34 a.m.
+        <div className="max-w-4xl mx-auto relative z-10 text-center text-white">
+          {/* Ubicación y hora en tiempo real */}
+          <div className="mb-6">
+            <UbicacionHora />
           </div>
           
-          <h1 className="text-5xl md:text-6xl font-bold mb-4">
+          {/* Título */}
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4 tracking-tight">
             <span className="text-green-400">SmartSACH</span>
           </h1>
-          <p className="text-xl md:text-2xl text-white/90 mb-6 max-w-3xl mx-auto">
+          
+          {/* Subtítulo */}
+          <p className="text-xl md:text-2xl lg:text-3xl text-white/90 mb-6 max-w-3xl mx-auto font-light">
             Gestión inteligente de recolección en Chiriquí
           </p>
-          <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
+          
+          {/* Descripción */}
+          <p className="text-base md:text-lg text-white/80 mb-10 max-w-2xl mx-auto leading-relaxed">
             Consulta rutas, pagos, reporta incidencias y mantén tu servicio al día.
           </p>
           
-          <div className="flex justify-center gap-4 flex-wrap">
-            <Link
-              to="/login"
-              className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium text-lg"
-            >
-              Comenzar ahora
-            </Link>
-            <Link
-              to="/register"
-              className="px-8 py-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-lg transition-colors font-medium text-lg border border-white/50"
-            >
-              Registrarse
-            </Link>
-          </div>
+          {/* ✅ BOTONES ELIMINADOS - ya están en el Navbar */}
         </div>
       </section>
 
