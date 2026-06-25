@@ -1,84 +1,23 @@
-import cors from "cors";
-import express from "express";
-import { existsSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
-import helmet from "helmet";
-import morgan from "morgan";
-
-import { env } from "./config/env.js";
-import authRouter from "./routes/auth.routes.js";
-import dashboardRouter from "./routes/dashboard.routes.js";
-import healthRouter from "./routes/health.routes.js";
-import statusRouter from "./routes/status.routes.js";
+// Backend/src/app.js
+import express from 'express';
+import cors from 'cors';
+import authRouter from './routes/auth.routes.js';
 
 const app = express();
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const backendRoot = join(__dirname, "..");
-const frontendDistPath = join(backendRoot, "Frontend", "dist");
-const frontendSourcePath = join(backendRoot, "..", "Frontend");
-const frontendPath = existsSync(join(frontendDistPath, "index.html"))
-  ? frontendDistPath
-  : existsSync(join(frontendSourcePath, "index.html"))
-    ? frontendSourcePath
-    : null;
 
-app.use(
-  helmet({
-    contentSecurityPolicy: false,
-  }),
-);
-app.use(
-  cors({
-    origin: env.corsOrigin === "*" ? true : env.corsOrigin,
-    credentials: true,
-  }),
-);
+// Middlewares
+app.use(cors());
 app.use(express.json());
-app.use(morgan(env.nodeEnv === "production" ? "combined" : "dev"));
 
-app.get("/api", (_req, res) => {
-  res.json({
-    name: "SmartSACH-FDT API",
-    status: "online",
-    health: "/health",
-  });
+// Rutas
+app.use('/api/auth', authRouter);
+
+app.get('/', (req, res) => {
+    res.json({ message: 'SmartSACH API funcionando correctamente' });
 });
 
-app.use("/health", healthRouter);
-app.use("/api/auth", authRouter);
-app.use("/api/dashboard", dashboardRouter);
-app.use("/api/status", statusRouter);
-
-if (frontendPath) {
-  app.use(express.static(frontendPath));
-
-  app.get("*", (req, res, next) => {
-    if (req.path.startsWith("/api") || req.path === "/health") {
-      next();
-      return;
-    }
-
-    res.sendFile(join(frontendPath, "index.html"), (err) => {
-      if (err) {
-        next(err);
-      }
-    });
-  });
-}
-
-app.use((_req, res) => {
-  res.status(404).json({
-    error: "Ruta no encontrada",
-  });
-});
-
-app.use((err, _req, res, _next) => {
-  const statusCode = err.statusCode || 500;
-
-  res.status(statusCode).json({
-    error: err.message || "Error interno del servidor",
-  });
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', message: 'El servidor está funcionando' });
 });
 
 export default app;

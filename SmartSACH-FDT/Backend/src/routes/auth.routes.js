@@ -1,13 +1,13 @@
 // Backend/src/routes/auth.routes.js
-const express = require('express');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const supabase = require('../config/database');
-const { JWT_SECRET } = require('../config/env');
+import express from 'express';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import supabase from '../config/database.js';
+import { JWT_SECRET } from '../config/env.js';
 
 const router = express.Router();
 
-// ===== REGISTRO (adaptado a tu tabla) =====
+// ===== REGISTRO =====
 router.post('/register', async (req, res) => {
     try {
         const { nombre, apellido, cedula, correo, password } = req.body;
@@ -43,8 +43,8 @@ router.post('/register', async (req, res) => {
                     apellido,
                     cedula,
                     correo_electronico: correo,
-                    password: hashedPassword, // ⬅️ Usamos "password" como en tu tabla
-                    estado_verificacion: 'activo' // ⬅️ Lo activamos directamente
+                    password: hashedPassword,
+                    estado_verificacion: 'activo'
                 },
             ])
             .select('usuario_id, nombre, apellido, cedula, correo_electronico, estado_verificacion, fecha_registro')
@@ -83,7 +83,7 @@ router.post('/register', async (req, res) => {
     }
 });
 
-// ===== LOGIN (adaptado a tu tabla) =====
+// ===== LOGIN =====
 router.post('/login', async (req, res) => {
     try {
         const { correo, password } = req.body;
@@ -138,4 +138,4 @@ router.post('/login', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;
