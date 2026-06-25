@@ -1,57 +1,27 @@
-import pg from "pg";
-
-import { env } from "./env.js";
+// Backend/src/config/database.js
+import pg from 'pg';
+import { env } from './env.js'; // Importación nativa usando ES Modules
 
 const { Pool } = pg;
 
-export const missingDatabaseConfig = [
-  !env.databaseUrl && !env.dbHost ? "DB_HOST" : null,
-  !env.databaseUrl && !env.dbName ? "DB_NAME" : null,
-  !env.databaseUrl && !env.dbUser ? "DB_USER" : null,
-  !env.databaseUrl && !env.dbPassword ? "DB_PASSWORD o DB_PASS" : null,
-].filter(Boolean);
+// Configuración del Pool de conexiones usando las variables del entorno unificado
+const pool = new Pool({
+  host: env.dbHost,
+  port: env.dbPort,
+  database: env.dbName,
+  user: env.dbUser,
+  password: env.dbPassword,
+  // Habilitar SSL automáticamente si se conecta a Supabase o si está en producción
+  ssl: env.dbSsl ? { rejectUnauthorized: false } : false,
+  // Configuraciones óptimas para el Transaction Pooler de Supabase
+  max: 10, // Máximo de conexiones simultáneas en el pool
+  idleTimeoutMillis: 30000, // Tiempo para cerrar conexiones inactivas
+  connectionTimeoutMillis: 2000, // Tiempo máximo para esperar una conexión libre
+});
 
-export const hasDatabaseConfig = missingDatabaseConfig.length === 0;
+// Monitoreo de errores en el Pool para evitar que el servidor de Render se caiga por completo
+pool.on('error', (err) => {
+  console.error('Error inesperado en el Pool de PostgreSQL:', err);
+});
 
-export const pool = hasDatabaseConfig
-  ? new Pool(
-      env.databaseUrl
-        ? {
-            connectionString: env.databaseUrl,
-            ssl: env.dbSsl ? { rejectUnauthorized: false } : false,
-          }
-        : {
-            host: env.dbHost,
-            port: env.dbPort,
-            database: env.dbName,
-            user: env.dbUser,
-            password: env.dbPassword,
-            ssl: env.dbSsl ? { rejectUnauthorized: false } : false,
-          },
-    )
-  : null;
-
-export function getDatabaseDiagnostics() {
-  return {
-    hasDatabaseUrl: Boolean(env.databaseUrl),
-    host: env.databaseUrl ? "DATABASE_URL" : env.dbHost,
-    port: env.databaseUrl ? "DATABASE_URL" : env.dbPort,
-    database: env.databaseUrl ? "DATABASE_URL" : env.dbName,
-    user: env.databaseUrl ? "DATABASE_URL" : env.dbUser,
-    hasPassword: Boolean(env.databaseUrl || env.dbPassword),
-    ssl: Boolean(env.dbSsl),
-    missing: missingDatabaseConfig,
-  };
-}
-
-export function requireDatabase() {
-  if (!pool) {
-    const error = new Error(
-      `Base de datos no configurada en el backend. Faltan variables: ${missingDatabaseConfig.join(", ")}.`,
-    );
-    error.statusCode = 503;
-    throw error;
-  }
-
-  return pool;
-}
+export default pool;
