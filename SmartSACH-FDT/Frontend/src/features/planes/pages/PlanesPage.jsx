@@ -16,7 +16,7 @@ export default function PlanesPage() {
         '✅ Soporte prioritario'
       ],
       popular: true,
-      badge: 'Más popular'
+      badge: '⭐ Más popular'
     },
     {
       nombre: 'Plan Anual',
@@ -32,13 +32,22 @@ export default function PlanesPage() {
         '✅ Descuento exclusivo'
       ],
       popular: false,
-      badge: 'Mejor precio'
+      badge: '🏷️ Mejor precio'
     }
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white py-12 px-4">
       <div className="max-w-5xl mx-auto">
+        {/* ===== FLECHA VOLVER ===== */}
+        <Link 
+          to="/" 
+          className="inline-flex items-center gap-2 text-green-700 hover:text-green-800 transition mb-6"
+        >
+          <span className="text-2xl">←</span>
+          <span>Volver al Home</span>
+        </Link>
+
         <h1 className="text-4xl font-bold text-center text-green-800 mb-4">
           Elige tu Plan
         </h1>
@@ -58,7 +67,7 @@ export default function PlanesPage() {
                 <div className={`text-center text-white text-sm font-bold py-1.5 ${
                   plan.popular ? 'bg-green-500' : 'bg-blue-500'
                 }`}>
-                  ⭐ {plan.badge}
+                  {plan.badge}
                 </div>
               )}
               <div className="p-8">
