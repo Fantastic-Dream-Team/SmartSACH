@@ -14,32 +14,25 @@ const HomePage = () => {
           backgroundPosition: 'center',
         }}
       >
-        {/* Overlay oscuro */}
         <div className="absolute inset-0 bg-black/40"></div>
         
-        {/* Ventanita blanca con el texto */}
         <div className="relative z-10 max-w-3xl mx-auto bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-8 md:p-12 text-center border border-white/20">
-          {/* Ubicación y hora */}
           <div className="mb-4">
             <UbicacionHora />
           </div>
           
-          {/* Título */}
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-800 mb-4 tracking-tight">
             <span className="text-green-600">SmartSACH</span>
           </h1>
           
-          {/* Subtítulo */}
           <p className="text-xl md:text-2xl text-gray-700 mb-4 max-w-2xl mx-auto font-medium">
             Gestión inteligente de recolección en Chiriquí
           </p>
           
-          {/* Descripción */}
           <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
             Consulta rutas, pagos, reporta incidencias y mantén tu servicio al día.
           </p>
           
-          {/* Línea decorativa */}
           <div className="w-24 h-1 bg-green-500 mx-auto mt-6 rounded-full"></div>
         </div>
       </section>
@@ -75,11 +68,11 @@ const HomePage = () => {
               </div>
             </div>
             
-            {/* Imagen con efecto */}
+            {/* ===== IMAGEN CAMBIADA A camionsach.jpg ===== */}
             <div className="rounded-2xl overflow-hidden shadow-2xl ring-4 ring-green-200 relative group">
               <img 
-                src="/images/Trabajadores.jpg" 
-                alt="Nuestro equipo" 
+                src="/images/camionsach.jpg" 
+                alt="Camión de recolección SmartSACH" 
                 className="w-full h-80 object-cover transition-transform duration-500 group-hover:scale-105"
               />
               <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black/20 to-transparent"></div>
