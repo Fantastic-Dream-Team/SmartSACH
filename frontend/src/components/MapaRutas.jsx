@@ -62,13 +62,13 @@ export default function MapaRutas() {
   const coordsRuta = puntos.map((p) => p.coords);
 
   return (
-    <div style={styles.wrapper}>
+    <div className="w-full font-sans">
       {/* Banner verde superior */}
-      <div style={styles.banner}>
-        <span style={styles.bannerIcon}>🗺️</span>
-        <span style={styles.bannerText}>Mapa de Rutas</span>
+      <div className="bg-[#1b4332] text-white px-5 py-3 flex items-center gap-[10px]">
+        <span className="text-[18px]">🗺️</span>
+        <span className="text-[16px] font-semibold flex-1">Mapa de Rutas</span>
         <button
-          style={styles.btnRuta}
+          className="bg-[#2d6a4f] text-white border-0 rounded-md px-[14px] py-[6px] text-[13px] cursor-pointer"
           onClick={() => setRutaVisible(!rutaVisible)}
         >
           {rutaVisible ? "Ocultar ruta" : "Ver ruta"}
@@ -79,7 +79,7 @@ export default function MapaRutas() {
       <MapContainer
         center={DAVID_CENTER}
         zoom={14}
-        style={styles.mapa}
+        style={{ height: "320px", width: "100%" }}
         scrollWheelZoom={true}
       >
         <TileLayer
@@ -112,95 +112,22 @@ export default function MapaRutas() {
       </MapContainer>
 
       {/* Lista de rutas debajo del mapa */}
-      <div style={styles.listaRutas}>
+      <div className="px-6 py-4 flex flex-col gap-2">
         {puntos.map((punto) => (
-          <div key={punto.id} style={styles.rutaItem}>
-            <span style={styles.rutaLetra}>{punto.id}</span>
-            <span style={styles.rutaNombre}>{punto.nombre}</span>
+          <div
+            key={punto.id}
+            className="flex items-center gap-3 bg-[#f4f4f4] rounded-lg px-[14px] py-[10px]"
+          >
+            <span className="bg-[#1b4332] text-white rounded-full w-[26px] h-[26px] flex items-center justify-center font-bold text-[13px] shrink-0">
+              {punto.id}
+            </span>
+            <span className="text-[14px] text-[#333]">{punto.nombre}</span>
           </div>
         ))}
-        <button style={styles.btnAgregar}>+ Agregar ruta nueva</button>
+        <button className="bg-transparent border border-dashed border-[#2d6a4f] rounded-lg py-[10px] text-[#2d6a4f] font-semibold cursor-pointer text-[14px]">
+          + Agregar ruta nueva
+        </button>
       </div>
     </div>
   );
 }
-
-const VERDE_OSCURO = "#1b4332";
-const VERDE_MID = "#2d6a4f";
-
-const styles = {
-  wrapper: {
-    width: "100%",
-    fontFamily: "sans-serif",
-  },
-  banner: {
-    backgroundColor: VERDE_OSCURO,
-    color: "#fff",
-    padding: "12px 20px",
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-  },
-  bannerIcon: {
-    fontSize: "18px",
-  },
-  bannerText: {
-    fontSize: "16px",
-    fontWeight: "600",
-    flex: 1,
-  },
-  btnRuta: {
-    backgroundColor: VERDE_MID,
-    color: "#fff",
-    border: "none",
-    borderRadius: "6px",
-    padding: "6px 14px",
-    fontSize: "13px",
-    cursor: "pointer",
-  },
-  mapa: {
-    height: "320px",
-    width: "100%",
-  },
-  listaRutas: {
-    padding: "1rem 1.5rem",
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
-  },
-  rutaItem: {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    backgroundColor: "#f4f4f4",
-    borderRadius: "8px",
-    padding: "10px 14px",
-  },
-  rutaLetra: {
-    backgroundColor: VERDE_OSCURO,
-    color: "#fff",
-    borderRadius: "50%",
-    width: "26px",
-    height: "26px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: "bold",
-    fontSize: "13px",
-    flexShrink: 0,
-  },
-  rutaNombre: {
-    fontSize: "14px",
-    color: "#333",
-  },
-  btnAgregar: {
-    backgroundColor: "transparent",
-    border: `1px dashed ${VERDE_MID}`,
-    borderRadius: "8px",
-    padding: "10px",
-    color: VERDE_MID,
-    fontWeight: "600",
-    cursor: "pointer",
-    fontSize: "14px",
-  },
-};

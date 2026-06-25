@@ -1,94 +1,33 @@
 export default function Footer() {
   return (
-    <footer style={styles.footer}>
-      <div style={styles.container}>
+    <footer className="bg-[#1b4332] text-[#d8f3dc] mt-auto">
+      <div className="max-w-[1100px] mx-auto px-8 py-6 flex items-center justify-between flex-wrap gap-4">
 
         {/* Logo + nombre */}
-        <div style={styles.brand}>
-          <img src="/logo-sach.png" alt="SACH" style={styles.logo} />
-          <span style={styles.brandName}>SACH</span>
+        <div className="flex items-center gap-[10px]">
+          <img src="/logo-sach.png" alt="SACH" className="h-10 object-contain" />
+          <span className="text-[18px] font-semibold text-white tracking-[0.5px]">SACH</span>
         </div>
 
         {/* Contáctanos label */}
-        <span style={styles.contactLabel}>Contáctanos</span>
+        <span className="text-[15px] font-semibold text-white">Contáctanos</span>
 
         {/* Info de contacto */}
-        <div style={styles.contactGroup}>
-          <p style={styles.contactItem}>📍 David centro, frente a hotel luar</p>
-          <p style={styles.contactItem}>📞 58328-234223</p>
-          <p style={styles.contactItem}>💬 +507 6532-2344</p>
-          <p style={styles.contactItem}>📷 Sachchirique</p>
+        <div className="flex flex-col gap-1">
+          <p className="m-0 text-[13px] text-[#d8f3dc]">📍 David centro, frente a hotel luar</p>
+          <p className="m-0 text-[13px] text-[#d8f3dc]">📞 58328-234223</p>
+          <p className="m-0 text-[13px] text-[#d8f3dc]">💬 +507 6532-2344</p>
+          <p className="m-0 text-[13px] text-[#d8f3dc]">📷 Sachchirique</p>
         </div>
 
       </div>
 
       {/* Línea inferior */}
-      <div style={styles.bottom}>
-        <p style={styles.bottomText}>
+      <div className="border-t border-[#2d6a4f] text-center px-8 py-3">
+        <p className="m-0 text-[12px] text-[#95d5b2]">
           Derechos reservados © SmartSACH S.A.
         </p>
       </div>
     </footer>
   );
 }
-
-const VERDE_OSCURO = "#1b4332";
-const VERDE_MID = "#2d6a4f";
-
-const styles = {
-  footer: {
-    backgroundColor: VERDE_OSCURO,
-    color: "#d8f3dc",
-    marginTop: "auto",
-  },
-  container: {
-    maxWidth: "1100px",
-    margin: "0 auto",
-    padding: "1.5rem 2rem",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    flexWrap: "wrap",
-    gap: "1rem",
-  },
-  brand: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-  },
-  logo: {
-    height: "40px",
-    objectFit: "contain",
-  },
-  brandName: {
-    fontSize: "18px",
-    fontWeight: "600",
-    color: "#ffffff",
-    letterSpacing: "0.5px",
-  },
-  contactLabel: {
-    fontSize: "15px",
-    fontWeight: "600",
-    color: "#ffffff",
-  },
-  contactGroup: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "4px",
-  },
-  contactItem: {
-    margin: 0,
-    fontSize: "13px",
-    color: "#d8f3dc",
-  },
-  bottom: {
-    borderTop: `1px solid ${VERDE_MID}`,
-    textAlign: "center",
-    padding: "0.75rem 2rem",
-  },
-  bottomText: {
-    margin: 0,
-    fontSize: "12px",
-    color: "#95d5b2",
-  },
-};
