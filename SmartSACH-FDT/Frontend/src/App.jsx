@@ -1,30 +1,53 @@
-import { useState } from 'react';
+// Frontend/src/App.jsx
+import { useEffect, useState } from 'react';
 import { getToken } from './config/api.js';
 import LoginPage from './features/auth/pages/LoginPage.jsx';
-import DashboardPage from './features/dashboard/pages/DashboardPage.jsx';
+
+// Hacemos una importación segura por si DashboardPage aún no está listo
+let DashboardPage;
+try {
+  const module = await import('./features/dashboard/pages/DashboardPage.jsx');
+  DashboardPage = module.default;
+} catch (e) {
+  console.warn("DashboardPage aún no ha sido implementado o tiene errores.");
+}
 
 export default function App() {
-  // Inicializamos el estado leyendo el token actual
-  const [token, setToken] = useState(getToken());
+  const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Función para cuando el usuario inicia sesión con éxito
-  const handleLoginSuccess = () => {
-    setToken(getToken());
-  };
+  // Leer el token de forma segura tras montar el componente
+  useEffect(() => {
+    try {
+      const t = getToken();
+      setToken(t);
+    } catch (error) {
+      console.error("Error al leer el token:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  // Función para cerrar sesión
-  const handleLogout = () => {
-    setToken(null);
-  };
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Cargando SmartSACH...</span>
+        </div>
+      </div>
+    );
+  }
 
-  // Enrutamiento condicional limpio
+  // Si no hay token o si DashboardPage no existe, forzar Login para evitar pantalla en blanco
+  if (!token || !DashboardPage) {
+    return <LoginPage onLoginSuccess={() => setToken(getToken())} />;
+  }
+
+  // Si todo está correcto, cargar panel
+  const DashboardComponent = DashboardPage;
   return (
     <div className="app-container">
-      {!token ? (
-        <LoginPage onLoginSuccess={handleLoginSuccess} />
-      ) : (
-        <DashboardPage onLogout={handleLogout} />
-      )}
+      <DashboardComponent onLogout={() => setToken(null)} />
     </div>
   );
 }

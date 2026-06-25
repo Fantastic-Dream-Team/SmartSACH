@@ -1,24 +1,23 @@
-const API_BASE_URL =
-    window.SMARTSACH_API_URL ||
-    (window.location.origin && window.location.origin !== "null"
-        ? window.location.origin
-        : "http://localhost:10000");
+// Frontend/src/config/api.js
 
-function getToken() {
+// Apuntamos directamente a la URL de tu backend en Render usando la clave de tu imagen
+const API_BASE_URL = "https://SmartSACH-FDT.onrender.com";
+
+export function getToken() {
     return localStorage.getItem("smartsach_token");
 }
 
-function saveSession(payload) {
+export function saveSession(payload) {
     localStorage.setItem("smartsach_token", payload.token);
     localStorage.setItem("smartsach_user", JSON.stringify(payload.user));
 }
 
-function clearSession() {
+export function clearSession() {
     localStorage.removeItem("smartsach_token");
     localStorage.removeItem("smartsach_user");
 }
 
-function showMessage(text, type = "danger") {
+export function showMessage(text, type = "danger") {
     const message = document.querySelector("#message");
     if (!message) return;
 
@@ -26,7 +25,7 @@ function showMessage(text, type = "danger") {
     message.textContent = text;
 }
 
-async function apiRequest(path, options = {}) {
+export async function apiRequest(path, options = {}) {
     const headers = {
         "Content-Type": "application/json",
         ...(options.headers || {}),
