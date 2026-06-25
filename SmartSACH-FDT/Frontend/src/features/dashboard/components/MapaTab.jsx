@@ -120,7 +120,7 @@ const rutasData = {
       { lat: 8.4420, lng: -82.4450, nombre: 'Fin - Plaza' },
     ],
     color: '#22c55e',
-    truck: { lat: 8.4350, lng: -82.4380, nombre: 'Camión #1' }
+    truck: { lat: 8.4286, lng: -82.4319, nombre: 'Camión #1' }
   },
   'Ruta 2 - David Este': {
     points: [
@@ -132,7 +132,7 @@ const rutasData = {
       { lat: 8.4600, lng: -82.4550, nombre: 'Fin - Las Lomas' },
     ],
     color: '#3b82f6',
-    truck: { lat: 8.4520, lng: -82.4480, nombre: 'Camión #2' }
+    truck: { lat: 8.4480, lng: -82.4400, nombre: 'Camión #2' }
   },
   'Ruta 3 - Chiriquí': {
     points: [
@@ -144,7 +144,7 @@ const rutasData = {
       { lat: 8.4290, lng: -82.4340, nombre: 'Fin - Plaza Central' },
     ],
     color: '#f59e0b',
-    truck: { lat: 8.4250, lng: -82.4300, nombre: 'Camión #3' }
+    truck: { lat: 8.4180, lng: -82.4200, nombre: 'Camión #3' }
   }
 };
 
@@ -154,6 +154,9 @@ export default function MapaTab() {
   const [selectedRuta, setSelectedRuta] = useState('Ruta 1 - David Centro');
   const [truckPositions, setTruckPositions] = useState({});
   const [animationInterval, setAnimationInterval] = useState(null);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [truckMarker, setTruckMarker] = useState(null);
+  const [currentPointIndex, setCurrentPointIndex] = useState(0);
 
   // ===== INICIALIZAR MAPA =====
   useEffect(() => {
@@ -167,18 +170,18 @@ export default function MapaTab() {
 
     mapInstanceRef.current = map;
 
-    // Capa de mapa
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
       maxZoom: 19,
     }).addTo(map);
 
-    // ===== DIBUJAR RUTA SELECCIONADA =====
     dibujarRuta(map, selectedRuta);
 
-    // ===== LIMPIAR =====
     return () => {
-      if (animationInterval) clearInterval(animationInterval);
+      if (animationInterval) {
+        clearInterval(animationInterval);
+        setAnimationInterval(null);
+      }
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
@@ -186,7 +189,7 @@ export default function MapaTab() {
     };
   }, []);
 
-  // ===== FUNCIÓN: DIBUJAR RUTA =====
+  // ===== DIBUJAR RUTA =====
   const dibujarRuta = (map, rutaKey) => {
     const ruta = rutasData[rutaKey];
     if (!ruta) return;
@@ -201,7 +204,7 @@ export default function MapaTab() {
     const puntos = ruta.points;
     const color = ruta.color;
 
-    // 1. Dibujar la línea de la ruta
+    // 1. Dibujar línea de la ruta
     const latlngs = puntos.map(p => [p.lat, p.lng]);
     const polyline = L.polyline(latlngs, {
       color: color,
@@ -211,7 +214,7 @@ export default function MapaTab() {
     }).addTo(map);
     polyline._isRuta = true;
 
-    // 2. Agregar marcadores en cada punto
+    // 2. Agregar marcadores
     puntos.forEach((punto, index) => {
       let icon;
       if (index === 0) icon = startIcon;
@@ -223,15 +226,17 @@ export default function MapaTab() {
         .bindPopup(`
           <b>${punto.nombre}</b><br>
           📍 Lat: ${punto.lat.toFixed(6)}<br>
-          📍 Lng: ${punto.lng.toFixed(6)}<br>
-          ${index === 0 ? '🚀 Inicio de ruta' : index === puntos.length - 1 ? '🏁 Fin de ruta' : '🛑 Parada'}
+          📍 Lng: ${punto.lng.toFixed(6)}
         `);
       marker._isRuta = true;
     });
 
-    // 3. Agregar el camión en su posición
+    // 3. Agregar camión en la posición inicial
     const truck = ruta.truck;
-    const truckMarker = L.marker([truck.lat, truck.lng], { icon: truckIcon })
+    const marker = L.marker([truck.lat, truck.lng], { 
+      icon: truckIcon,
+      draggable: false,
+    })
       .addTo(map)
       .bindPopup(`
         <b>${truck.nombre}</b><br>
@@ -239,85 +244,130 @@ export default function MapaTab() {
         📍 Lat: ${truck.lat.toFixed(6)}<br>
         📍 Lng: ${truck.lng.toFixed(6)}
       `);
-    truckMarker._isRuta = true;
+    marker._isRuta = true;
 
-    // Guardar referencia del camión
-    setTruckPositions(prev => ({
-      ...prev,
-      [rutaKey]: { marker: truckMarker, currentIndex: 2 }
-    }));
+    setTruckMarker(marker);
+    setCurrentPointIndex(0);
+    setTruckPositions({ [rutaKey]: { marker, currentIndex: 0 } });
 
     // Centrar en la ruta
     map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
   };
 
-  // ===== ANIMAR CAMIÓN (SIMULACIÓN) =====
-  const animarCamion = () => {
-    if (animationInterval) clearInterval(animationInterval);
+  // ===== INICIAR RECORRIDO =====
+  const iniciarRecorrido = () => {
+    if (isAnimating) {
+      alert('⚠️ El recorrido ya está en curso');
+      return;
+    }
+
+    const ruta = rutasData[selectedRuta];
+    if (!ruta || !truckMarker) {
+      alert('⚠️ No se encontró la ruta o el camión');
+      return;
+    }
+
+    setIsAnimating(true);
+    setCurrentPointIndex(0);
+
+    const puntos = ruta.points;
+    let index = 0;
 
     const interval = setInterval(() => {
-      const ruta = rutasData[selectedRuta];
-      if (!ruta) return;
-
-      const puntos = ruta.points;
-      const truckRef = truckPositions[selectedRuta];
-      if (!truckRef) return;
-
-      // Avanzar al siguiente punto
-      let nextIndex = truckRef.currentIndex + 1;
-      if (nextIndex >= puntos.length) {
-        nextIndex = 0; // Reiniciar
-      }
-
+      const nextIndex = (index + 1) % puntos.length;
       const nextPoint = puntos[nextIndex];
       
-      // Mover el marcador del camión
-      truckRef.marker.setLatLng([nextPoint.lat, nextPoint.lng]);
-      truckRef.marker.setPopupContent(`
+      // Mover el camión
+      truckMarker.setLatLng([nextPoint.lat, nextPoint.lng]);
+      truckMarker.setPopupContent(`
         <b>${ruta.truck.nombre}</b><br>
         🚛 Ruta: ${selectedRuta}<br>
         📍 Lat: ${nextPoint.lat.toFixed(6)}<br>
         📍 Lng: ${nextPoint.lng.toFixed(6)}<br>
-        📍 Próxima parada: ${nextPoint.nombre}
+        📍 ${nextPoint.nombre}
       `);
       
       // Actualizar índice
+      index = nextIndex;
+      setCurrentPointIndex(index);
+
+      // Actualizar estado
       setTruckPositions(prev => ({
         ...prev,
-        [selectedRuta]: { ...prev[selectedRuta], currentIndex: nextIndex }
+        [selectedRuta]: { 
+          marker: truckMarker, 
+          currentIndex: index 
+        }
       }));
-    }, 3000);
+
+      // Si llegamos al final, detener
+      if (index === puntos.length - 1) {
+        clearInterval(interval);
+        setAnimationInterval(null);
+        setIsAnimating(false);
+        alert('✅ ¡Recorrido completado!');
+      }
+    }, 2000);
 
     setAnimationInterval(interval);
   };
 
-  // ===== CAMBIAR RUTA =====
-  const cambiarRuta = (rutaKey) => {
-    setSelectedRuta(rutaKey);
+  // ===== DETENER RECORRIDO =====
+  const detenerRecorrido = () => {
     if (animationInterval) {
       clearInterval(animationInterval);
       setAnimationInterval(null);
+      setIsAnimating(false);
+      
+      // Mostrar mensaje
+      const ruta = rutasData[selectedRuta];
+      const punto = ruta.points[currentPointIndex];
+      alert(`⏹️ Recorrido detenido en: ${punto.nombre}`);
+    } else {
+      alert('⚠️ No hay ningún recorrido en curso');
     }
+  };
+
+  // ===== CAMBIAR RUTA =====
+  const cambiarRuta = (rutaKey) => {
+    if (isAnimating) {
+      alert('⚠️ Detén el recorrido primero');
+      return;
+    }
+    
+    setSelectedRuta(rutaKey);
     if (mapInstanceRef.current) {
       dibujarRuta(mapInstanceRef.current, rutaKey);
     }
   };
 
-  // ===== INICIAR ANIMACIÓN =====
-  const iniciarAnimacion = () => {
-    if (truckPositions[selectedRuta]) {
-      animarCamion();
-    } else {
-      alert('⚠️ Espera a que la ruta se cargue completamente');
+  // ===== REINICIAR RECORRIDO =====
+  const reiniciarRecorrido = () => {
+    if (isAnimating) {
+      alert('⚠️ Detén el recorrido primero');
+      return;
     }
-  };
 
-  // ===== DETENER ANIMACIÓN =====
-  const detenerAnimacion = () => {
-    if (animationInterval) {
-      clearInterval(animationInterval);
-      setAnimationInterval(null);
-    }
+    const ruta = rutasData[selectedRuta];
+    if (!ruta || !truckMarker) return;
+
+    const puntoInicio = ruta.points[0];
+    truckMarker.setLatLng([puntoInicio.lat, puntoInicio.lng]);
+    truckMarker.setPopupContent(`
+      <b>${ruta.truck.nombre}</b><br>
+      🚛 Ruta: ${selectedRuta}<br>
+      📍 Lat: ${puntoInicio.lat.toFixed(6)}<br>
+      📍 Lng: ${puntoInicio.lng.toFixed(6)}<br>
+      📍 ${puntoInicio.nombre}
+    `);
+    setCurrentPointIndex(0);
+    setTruckPositions(prev => ({
+      ...prev,
+      [selectedRuta]: { 
+        marker: truckMarker, 
+        currentIndex: 0 
+      }
+    }));
   };
 
   return (
@@ -344,18 +394,41 @@ export default function MapaTab() {
           </select>
           
           <button
-            onClick={iniciarAnimacion}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition text-sm font-medium"
+            onClick={iniciarRecorrido}
+            disabled={isAnimating}
+            className="bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg transition text-sm font-medium"
           >
             ▶️ Iniciar recorrido
           </button>
           
           <button
-            onClick={detenerAnimacion}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition text-sm font-medium"
+            onClick={detenerRecorrido}
+            disabled={!isAnimating}
+            className="bg-red-500 hover:bg-red-600 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg transition text-sm font-medium"
           >
             ⏹️ Detener
           </button>
+
+          <button
+            onClick={reiniciarRecorrido}
+            disabled={isAnimating}
+            className="bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg transition text-sm font-medium"
+          >
+            🔄 Reiniciar
+          </button>
+        </div>
+
+        {/* ===== INDICADOR DE ESTADO ===== */}
+        <div className="mb-4 p-3 rounded-lg border text-sm flex items-center gap-3">
+          <span className={`inline-block w-2 h-2 rounded-full ${isAnimating ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></span>
+          <span className="text-gray-700">
+            {isAnimating ? '🚛 Camión en movimiento...' : '⏸️ Camión detenido'}
+          </span>
+          {isAnimating && (
+            <span className="text-xs text-green-600">
+              Parada {currentPointIndex + 1} de {rutasData[selectedRuta]?.points.length}
+            </span>
+          )}
         </div>
 
         {/* ===== MAPA ===== */}
@@ -370,7 +443,7 @@ export default function MapaTab() {
           <p className="text-xs font-medium text-gray-700 mb-2">📋 Leyenda:</p>
           <div className="flex flex-wrap gap-4 text-xs text-gray-600">
             <div className="flex items-center gap-2">
-              <span className="text-lg text-green-500">🚛</span>
+              <span className="text-lg text-blue-500">🚛</span>
               <span>Camion en movimiento</span>
             </div>
             <div className="flex items-center gap-2">
