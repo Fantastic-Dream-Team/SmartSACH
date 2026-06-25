@@ -1,7 +1,8 @@
 // Frontend/src/config/api.js
 
-// Apuntamos directamente a la URL de tu backend en Render usando la clave de tu imagen
-const API_BASE_URL = "https://SmartSACH-FDT.onrender.com";
+// En producción usa el mismo origen (Express sirve API + dist/).
+// En desarrollo puedes definir VITE_API_URL=http://localhost:10000 en .env
+const API_BASE_URL = import.meta.env.VITE_API_URL || "";
 
 export function getToken() {
     return localStorage.getItem("smartsach_token");
@@ -36,7 +37,8 @@ export async function apiRequest(path, options = {}) {
         headers.Authorization = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const url = API_BASE_URL ? `${API_BASE_URL}${path}` : path;
+    const response = await fetch(url, {
         ...options,
         headers,
     });

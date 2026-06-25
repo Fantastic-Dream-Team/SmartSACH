@@ -14,7 +14,11 @@ import statusRouter from "./routes/status.routes.js";
 
 const app = express();
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const frontendPath = join(__dirname, "..", "..", "Frontend");
+const frontendDistPath = join(__dirname, "..", "..", "Frontend", "dist");
+const frontendSourcePath = join(__dirname, "..", "..", "Frontend");
+const frontendPath = existsSync(join(frontendDistPath, "index.html"))
+  ? frontendDistPath
+  : frontendSourcePath;
 
 app.use(
   helmet({

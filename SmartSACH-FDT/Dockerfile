@@ -1,40 +1,31 @@
 # ==========================================
-# ETAPA 1: Compilación de la App con Vite
+# ETAPA 1: Compilación del frontend con Vite
 # ==========================================
-FROM node:20-alpine AS build
+FROM node:20-alpine AS frontend-build
 
-WORKDIR /app
+WORKDIR /app/frontend
 
-# 1. Copiamos los archivos de configuración desde la subcarpeta Frontend
 COPY Frontend/package*.json ./
+RUN npm ci
 
-# 2. Instalamos todas las dependencias dentro del contenedor
-RUN npm install
-
-# 3. Copiamos todo el código fuente de la subcarpeta Frontend al contenedor
-COPY ../Frontend/ .
-
-# 4. Compilamos el proyecto. Vite generará los estáticos en /app/dist
+COPY Frontend/ ./
 RUN npm run build
 
 # ==========================================
-# ETAPA 2: Servidor Web de Producción (Nginx)
+# ETAPA 2: Backend Express + estáticos compilados
 # ==========================================
-FROM nginx:alpine
+FROM node:20-alpine
 
-# Copiamos el resultado de la compilación al directorio público de Nginx
-COPY --from=build /app/dist /usr/share/nginx/html
+WORKDIR /app
 
-# Configuración personalizada de Nginx para evitar pantallas blancas o errores 404 con React Router
-RUN echo 'server { \
-    listen 80; \
-    location / { \
-        root /usr/share/nginx/html; \
-        index index.html index.htm; \
-        try_files $uri $uri/ /index.html; \
-    } \
-}' > /etc/nginx/conf.d/default.conf
+COPY Backend/package*.json ./
+RUN npm ci --omit=dev
 
-EXPOSE 80
+COPY Backend/ ./
+COPY --from=frontend-build /app/frontend/dist ./Frontend/dist
 
-CMD ["nginx", "-g", "daemon off;"]
+ENV NODE_ENV=production
+
+EXPOSE 10000
+
+CMD ["node", "src/server.js"]
