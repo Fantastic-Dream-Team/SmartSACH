@@ -1,14 +1,15 @@
 # ==========================================
 # ETAPA 1: Compilación del frontend con Vite
+# Contexto Docker: raíz del repo (.)
 # ==========================================
 FROM node:20-alpine AS frontend-build
 
 WORKDIR /app/frontend
 
-COPY Frontend/package*.json ./
+COPY SmartSACH-FDT/Frontend/package*.json ./
 RUN npm ci
 
-COPY Frontend/ ./
+COPY SmartSACH-FDT/Frontend/ ./
 RUN npm run build
 
 # ==========================================
@@ -18,10 +19,10 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-COPY Backend/package*.json ./
+COPY SmartSACH-FDT/Backend/package*.json ./
 RUN npm ci --omit=dev
 
-COPY Backend/ ./
+COPY SmartSACH-FDT/Backend/ ./
 COPY --from=frontend-build /app/frontend/dist ./Frontend/dist
 
 ENV NODE_ENV=production
