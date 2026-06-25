@@ -1,27 +1,46 @@
 // Backend/src/config/database.js
 import pg from 'pg';
-import { env } from './env.js'; // Importación nativa usando ES Modules
+import { env } from './env.js';
 
 const { Pool } = pg;
 
-// Configuración del Pool de conexiones usando las variables del entorno unificado
+// 1. Configuración del Pool de conexiones
 const pool = new Pool({
   host: env.dbHost,
   port: env.dbPort,
   database: env.dbName,
   user: env.dbUser,
   password: env.dbPassword,
-  // Habilitar SSL automáticamente si se conecta a Supabase o si está en producción
   ssl: env.dbSsl ? { rejectUnauthorized: false } : false,
-  // Configuraciones óptimas para el Transaction Pooler de Supabase
-  max: 10, // Máximo de conexiones simultáneas en el pool
-  idleTimeoutMillis: 30000, // Tiempo para cerrar conexiones inactivas
-  connectionTimeoutMillis: 2000, // Tiempo máximo para esperar una conexión libre
+  max: 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 });
 
-// Monitoreo de errores en el Pool para evitar que el servidor de Render se caiga por completo
 pool.on('error', (err) => {
   console.error('Error inesperado en el Pool de PostgreSQL:', err);
 });
 
+// 2. FUNCIÓN DE DIAGNÓSTICO (Requerida por status.routes.js / health.routes.js)
+// Esta función ejecuta una consulta rápida de prueba ('SELECT NOW()') para verificar la salud de la BD
+export const getDatabaseDiagnostics = async () => {
+  const startTime = Date.now();
+  try {
+    const res = await pool.query('SELECT NOW() AS current_time, version();');
+    return {
+      status: 'healthy',
+      latencyMs: Date.now() - startTime,
+      timestamp: res.rows[0].current_time,
+      version: res.rows[0].version
+    };
+  } catch (error) {
+    return {
+      status: 'unhealthy',
+      latencyMs: Date.now() - startTime,
+      error: error.message
+    };
+  }
+};
+
+// Exportación por defecto del pool para las consultas cotidianas
 export default pool;
