@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiRequest, saveSession } from '../../../config/api.js';
-import { LoginValidator } from '../../../utils/LoginValidator.js';
+import { LoginValidator } from '../../utils/LoginValidator.js';
 
 const validator = new LoginValidator();
 
