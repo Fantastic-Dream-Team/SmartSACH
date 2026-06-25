@@ -36,8 +36,8 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-gray-50">
-        <Navbar /> {/* Mismo Navbar para toda la app */}
+      <div className="min-h-screen bg-gray-50 pt-16"> {/* pt-16 para el navbar fijo */}
+        <Navbar />
         <Routes>
           {/* Rutas públicas */}
           <Route path="/" element={<HomePage />} />
@@ -45,7 +45,7 @@ export default function App() {
           <Route path="/login" element={<LoginPage onLoginSuccess={handleLoginSuccess} />} />
           <Route path="/register" element={<RegisterPage />} />
 
-          {/* Rutas protegidas (usando el mismo Navbar) */}
+          {/* Rutas protegidas */}
           <Route
             path="/perfil"
             element={

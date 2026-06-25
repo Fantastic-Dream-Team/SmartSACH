@@ -28,42 +28,45 @@ export default function Navbar() {
 
   // Links para usuarios NO autenticados
   const publicLinks = [
-    { path: '/', label: '🏠 Home' },
-    { path: '/planes', label: '📋 Planes' },
-    { path: '/login', label: '🔑 Iniciar Sesión' },
-    { path: '/register', label: '📝 Registrarse' },
+    { path: '/', label: 'Homepage' },
+    { path: '/planes', label: 'Planes' },
+    { path: '/login', label: 'Iniciar Sesión' },
+    { path: '/register', label: 'Registrarse' },
   ];
 
   // Links para usuarios autenticados
   const privateLinks = [
-    { path: '/', label: '🏠 Home' },
-    { path: '/perfil', label: '👤 Perfil' },
-    { path: '/mapa', label: '🗺️ Mapa' },
-    { path: '/pagos', label: '💰 Pagos' },
-    { path: '/suscripcion', label: '📋 Suscripción' },
+    { path: '/', label: 'Home' },
+    { path: '/perfil', label: 'Perfil' },
+    { path: '/mapa', label: 'Mapa' },
+    { path: '/pagos', label: 'Pagos' },
+    { path: '/suscripcion', label: 'Suscripción' },
   ];
 
   const links = isAuthenticated ? privateLinks : publicLinks;
 
   return (
-    <header className="bg-gradient-to-r from-green-800 to-green-600 text-white shadow-lg sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center flex-wrap gap-4">
+    <nav className="bg-white shadow-md px-6 py-4 fixed w-full top-0 z-50">
+      <div className="max-w-7xl mx-auto flex justify-between items-center">
         {/* Logo */}
-        <Link to="/" className="text-xl font-bold flex items-center gap-2">
-          <span className="text-2xl">♻️</span>
-          <span>SmartSACH</span>
+        <Link to="/" className="flex items-center gap-2">
+          <img 
+            src="/images/logos/Logoyname.png" 
+            alt="SmartSACH" 
+            className="h-10 w-auto"
+          />
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-1">
+        <div className="hidden md:flex items-center gap-6">
           {links.map((link) => (
             <Link
               key={link.path}
               to={link.path}
-              className={`px-4 py-2 rounded-lg transition text-sm font-medium ${
+              className={`text-sm font-medium transition ${
                 location.pathname === link.path
-                  ? 'bg-white/20 text-white'
-                  : 'hover:bg-white/10 text-white/80'
+                  ? 'text-green-700'
+                  : 'text-gray-600 hover:text-green-600'
               }`}
             >
               {link.label}
@@ -71,26 +74,26 @@ export default function Navbar() {
           ))}
 
           {isAuthenticated && (
-            <div className="flex items-center gap-3 ml-4 border-l border-white/20 pl-4">
-              <span className="text-sm text-white/90">
-                👋 {user?.nombre || 'Usuario'}
+            <>
+              <span className="text-sm text-gray-500 border-l pl-4">
+                {user?.nombre || 'Usuario'}
               </span>
               <button
                 onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg transition text-sm font-medium"
+                className="text-sm text-red-500 hover:text-red-700 transition font-medium"
               >
                 Cerrar Sesión
               </button>
-            </div>
+            </>
           )}
         </div>
 
         {/* Mobile menu button */}
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="md:hidden p-2 rounded-lg hover:bg-white/10 transition"
+          className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             {isMobileMenuOpen ? (
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             ) : (
@@ -102,7 +105,7 @@ export default function Navbar() {
 
       {/* Mobile Navigation */}
       {isMobileMenuOpen && (
-        <div className="md:hidden py-4 border-t border-white/10">
+        <div className="md:hidden pt-4 pb-2 border-t border-gray-200 mt-4 space-y-2">
           {links.map((link) => (
             <Link
               key={link.path}
@@ -110,8 +113,8 @@ export default function Navbar() {
               onClick={() => setIsMobileMenuOpen(false)}
               className={`block px-4 py-2 rounded-lg transition text-sm ${
                 location.pathname === link.path
-                  ? 'bg-white/20 text-white'
-                  : 'hover:bg-white/10 text-white/80'
+                  ? 'bg-green-50 text-green-700'
+                  : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
               {link.label}
@@ -119,15 +122,15 @@ export default function Navbar() {
           ))}
           {isAuthenticated && (
             <>
-              <div className="px-4 py-2 text-sm text-white/80">
-                👋 {user?.nombre || 'Usuario'}
+              <div className="px-4 py-2 text-sm text-gray-500 border-t border-gray-200">
+                {user?.nombre || 'Usuario'}
               </div>
               <button
                 onClick={() => {
                   handleLogout();
                   setIsMobileMenuOpen(false);
                 }}
-                className="w-full text-left px-4 py-2 text-sm text-red-300 hover:bg-white/10 rounded-lg transition"
+                className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 rounded-lg transition"
               >
                 Cerrar Sesión
               </button>
@@ -135,6 +138,6 @@ export default function Navbar() {
           )}
         </div>
       )}
-    </header>
+    </nav>
   );
 }

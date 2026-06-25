@@ -8,7 +8,7 @@ import PagosTab from '../components/PagosTab.jsx';
 import SuscripcionTab from '../components/SuscripcionTab.jsx';
 import InicioTab from '../components/InicioTab.jsx';
 
-export default function DashboardPage({ onLogout }) {
+export default function DashboardPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('perfil');
@@ -23,12 +23,6 @@ export default function DashboardPage({ onLogout }) {
     }
     setLoading(false);
   }, [navigate]);
-
-  const handleLogout = () => {
-    logout();
-    if (onLogout) onLogout();
-    navigate('/');
-  };
 
   if (loading) {
     return (
@@ -48,7 +42,6 @@ export default function DashboardPage({ onLogout }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navbar eliminado (se usa el de App.jsx) */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         {tabComponents[activeTab] || <PerfilTab user={user} />}
       </div>
