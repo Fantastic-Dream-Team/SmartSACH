@@ -1,15 +1,16 @@
 // Backend/src/routes/dashboard.routes.js
-const express = require('express');
+import express from 'express';
+import pool from '../config/database.js'; // Ajusta la extensión según tus archivos
+import { requireAuth } from '../middleware/auth.js';
+
 const router = express.Router();
-const { requireAuth } = require('../middleware/auth');
-const pool = require('../config/database'); // Tu conexión pool a PostgreSQL
 
 // GET: Obtener la información del ciudadano en David
 router.get('/', requireAuth, async (req, res) => {
   try {
-    const auth_id = req.user.id; // UUID obtenido del token en el middleware
+    const auth_id = req.user.id;
 
-    // 1. Consultar perfil del usuario en la tabla pública usando el auth_id
+    // 1. Consultar perfil del usuario
     const userQuery = await pool.query(
       'SELECT usuario_id, nombre, apellido, estado_verificacion FROM public.usuarios WHERE auth_id = $1',
       [auth_id]
@@ -21,7 +22,7 @@ router.get('/', requireAuth, async (req, res) => {
 
     const perfil = userQuery.rows[0];
 
-    // 2. Consultar sus rutas asignadas mediante las suscripciones activas
+    // 2. Consultar sus rutas
     const rutasQuery = await pool.query(
       `SELECT r.nombre_ruta, r.zona_sector, r.horario_estimado 
        FROM public.suscripciones s
@@ -47,4 +48,5 @@ router.get('/', requireAuth, async (req, res) => {
   }
 });
 
-module.exports = router;
+// Exportación correcta para ES Modules
+export default router;

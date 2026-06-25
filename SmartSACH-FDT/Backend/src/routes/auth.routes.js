@@ -1,7 +1,8 @@
 // Backend/src/routes/auth.routes.js
-const express = require('express');
+import express from 'express';
+import { supabase } from '../config/supabase.js'; // Asegura agregar la extensión .js
+
 const router = express.Router();
-const supabase = require('../config/supabase');
 
 // POST: Manejar el registro de ciudadanos
 router.post('/register', async (req, res) => {
@@ -12,7 +13,7 @@ router.post('/register', async (req, res) => {
       email: correo,
       password: password,
       options: {
-        data: { nombre, apellido, cedula } // Almacenado en raw_user_meta_data para el trigger de la BD
+        data: { nombre, apellido, cedula }
       }
     });
 
@@ -55,4 +56,5 @@ router.post('/login', async (req, res) => {
   }
 });
 
-module.exports = router;
+// Exportación correcta para ES Modules
+export default router;
