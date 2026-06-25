@@ -12,7 +12,7 @@ COPY Frontend/package*.json ./
 RUN npm install
 
 # 3. Copiamos todo el código fuente de la subcarpeta Frontend al contenedor
-COPY Frontend/ .
+COPY ../Frontend/ .
 
 # 4. Compilamos el proyecto. Vite generará los estáticos en /app/dist
 RUN npm run build
