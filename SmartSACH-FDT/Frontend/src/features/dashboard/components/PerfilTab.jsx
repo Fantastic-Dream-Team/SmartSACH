@@ -4,8 +4,8 @@ import DashboardCard from './DashboardCard.jsx';
 import UbicacionHora from '../../../components/UbicacionHora.jsx';
 
 export default function PerfilTab({ user }) {
-  // Datos reales del usuario (desde localStorage)
-  const userData = {
+  // ===== DATOS INICIALES DEL USUARIO =====
+  const initialData = {
     nombre: user?.nombre || '',
     apellido: user?.apellido || '',
     correo: user?.correo || user?.correo_electronico || '',
@@ -14,20 +14,39 @@ export default function PerfilTab({ user }) {
     direccion: user?.direccion || 'No registrada',
   };
 
-  // Estado para edición
-  const [editData, setEditData] = useState({ ...userData });
+  // ===== ESTADO PRINCIPAL =====
+  const [userData, setUserData] = useState(initialData);
+  const [editData, setEditData] = useState({ ...initialData });
   const [showModal, setShowModal] = useState(false);
 
-  // Rutas de ejemplo
+  // ===== RUTAS DE EJEMPLO =====
   const [rutas] = useState([
     { nombre: 'David Este', direccion: 'David, alto de la nueva calle 92, casa 7', horario: 'Lunes y Viernes, 7:00 AM' },
     { nombre: 'Algarrobos', direccion: 'Nuevo horizonte al lado de la cancha, casa 87', horario: 'Martes y Jueves, 9:00 AM' }
   ]);
 
+  // ===== GUARDAR CAMBIOS =====
   const handleEditSubmit = (e) => {
     e.preventDefault();
+    
+    // Actualizar el estado principal con los datos editados
+    setUserData({
+      nombre: editData.nombre,
+      apellido: editData.apellido,
+      correo: editData.correo || userData.correo,
+      cedula: editData.cedula || userData.cedula,
+      telefono: editData.telefono || '',
+      direccion: editData.direccion || 'No registrada',
+    });
+
     alert('✅ Datos actualizados correctamente');
     setShowModal(false);
+  };
+
+  // ===== ABRIR MODAL =====
+  const abrirModal = () => {
+    setEditData({ ...userData });
+    setShowModal(true);
   };
 
   return (
@@ -44,13 +63,13 @@ export default function PerfilTab({ user }) {
           <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2">
             <p><strong>Nombre:</strong> {userData.nombre} {userData.apellido}</p>
             <p><strong>Correo:</strong> {userData.correo}</p>
-            <p><strong>Cédula:</strong> {userData.cedula}</p>
+            <p><strong>Cédula:</strong> {userData.cedula || 'No registrada'}</p>
             <p><strong>Teléfono:</strong> {userData.telefono || 'No registrado'}</p>
-            <p><strong>Dirección:</strong> {userData.direccion}</p>
+            <p className="col-span-2"><strong>Dirección:</strong> {userData.direccion}</p>
           </div>
         </div>
         <button 
-          onClick={() => { setEditData({ ...userData }); setShowModal(true); }}
+          onClick={abrirModal}
           className="mt-4 bg-green-700 hover:bg-green-800 text-white px-6 py-2 rounded-lg transition text-sm font-medium"
         >
           ✏️ Modificar datos
@@ -90,7 +109,7 @@ export default function PerfilTab({ user }) {
       {/* ===== MODAL MODIFICAR DATOS ===== */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-bold text-green-800 mb-4">✏️ Modificar datos</h3>
             <form onSubmit={handleEditSubmit}>
               <div className="space-y-3">
@@ -101,6 +120,7 @@ export default function PerfilTab({ user }) {
                     value={editData.nombre}
                     onChange={(e) => setEditData({...editData, nombre: e.target.value})}
                     className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                    required
                   />
                 </div>
                 <div>
@@ -110,6 +130,27 @@ export default function PerfilTab({ user }) {
                     value={editData.apellido}
                     onChange={(e) => setEditData({...editData, apellido: e.target.value})}
                     className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Correo</label>
+                  <input
+                    type="email"
+                    value={editData.correo}
+                    onChange={(e) => setEditData({...editData, correo: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Cédula</label>
+                  <input
+                    type="text"
+                    value={editData.cedula}
+                    onChange={(e) => setEditData({...editData, cedula: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                    required
                   />
                 </div>
                 <div>
