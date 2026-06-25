@@ -2,13 +2,13 @@
 import DashboardCard from './DashboardCard.jsx';
 
 export default function PerfilTab({ user }) {
-  // Datos de ejemplo (después vendrán de la base de datos)
   const perfil = {
-    nombre: 'Ángela Acosta',
+    nombre: user?.nombre || 'Ángela',
+    apellido: user?.apellido || 'Acosta',
     institucion: 'Instituto San José',
     correo: user?.correo || 'angelaica1527@gmail.com',
     telefono: '6959-1298',
-    cedula: '3.721.403',
+    cedula: user?.cedula || '3.721.403',
     rutas: [
       {
         nombre: 'David Este',
@@ -32,14 +32,14 @@ export default function PerfilTab({ user }) {
       
       <h2 className="text-2xl font-bold text-green-800 mb-6">Panel de usuario</h2>
       
-      {/* Datos personales */}
+      {/* ===== DATOS PERSONALES ===== */}
       <DashboardCard className="mb-6">
         <div className="flex items-start gap-6">
           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-3xl text-green-700">
             👤
           </div>
           <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2">
-            <p><strong>Nombre:</strong> {perfil.nombre}</p>
+            <p><strong>Nombre:</strong> {perfil.nombre} {perfil.apellido}</p>
             <p><strong>Institución:</strong> {perfil.institucion}</p>
             <p><strong>Correo electrónico:</strong> {perfil.correo}</p>
             <p><strong>Teléfono:</strong> {perfil.telefono}</p>
@@ -50,8 +50,27 @@ export default function PerfilTab({ user }) {
           ✏️ Modificar datos
         </button>
       </DashboardCard>
-      
-      {/* Mis Rutas */}
+
+      {/* ===== RESUMEN DE CUENTA Y ESTADÍSTICAS ===== */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <DashboardCard title="📋 Resumen de Cuenta">
+          <div className="space-y-2">
+            <p><strong>Estado:</strong> <span className="text-green-600">Activa</span></p>
+            <p><strong>Rutas activas:</strong> 1</p>
+            <p><strong>Próximo pago:</strong> 22/06/2026</p>
+          </div>
+        </DashboardCard>
+        
+        <DashboardCard title="📊 Estadísticas">
+          <div className="space-y-2">
+            <p><strong>Recolecciones este mes:</strong> 12</p>
+            <p><strong>Reportes enviados:</strong> 0</p>
+            <p><strong>Pagos realizados:</strong> 5</p>
+          </div>
+        </DashboardCard>
+      </div>
+
+      {/* ===== MIS RUTAS ===== */}
       <h3 className="text-xl font-bold text-green-800 mb-4">Mis Rutas</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {perfil.rutas.map((ruta, index) => (

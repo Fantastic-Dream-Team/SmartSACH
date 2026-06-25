@@ -1,6 +1,6 @@
 // src/features/auth/pages/LoginPage.jsx
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { apiRequest, saveSession } from '../../../config/api.js';
 import { LoginValidator } from '../../../utils/LoginValidator.js';
 
@@ -15,6 +15,7 @@ export default function LoginPage({ onLoginSuccess }) {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [errores, setErrores] = useState({});
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -45,7 +46,7 @@ export default function LoginPage({ onLoginSuccess }) {
       }
       
       onLoginSuccess();
-      window.location.href = '/dashboard';
+      navigate('/perfil'); // ✅ Redirige a Perfil
     } catch (error) {
       setErrorMsg(error.message || 'Credenciales incorrectas');
     } finally {
