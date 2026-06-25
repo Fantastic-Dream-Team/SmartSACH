@@ -1,9 +1,8 @@
 // src/config/api.js
-const API_URL = import.meta.env.VITE_API_URL || 'https://tu-backend.onrender.com';
+const API_URL = import.meta.env.VITE_API_URL || 'https://smartsach-fdt.onrender.com';
 
 export const apiRequest = async (endpoint, options = {}) => {
-  const token = getToken();
-  
+  const token = localStorage.getItem('token');
   const headers = {
     'Content-Type': 'application/json',
     ...(token && { 'Authorization': `Bearer ${token}` }),
@@ -17,23 +16,17 @@ export const apiRequest = async (endpoint, options = {}) => {
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.message || 'Error en la petición');
+    throw new Error(error.error || error.detail || 'Error en la petición');
   }
 
   return response.json();
 };
 
-export const getToken = () => {
-  return localStorage.getItem('token');
-};
+export const getToken = () => localStorage.getItem('token');
 
 export const saveSession = (data) => {
-  if (data.token) {
-    localStorage.setItem('token', data.token);
-  }
-  if (data.user) {
-    localStorage.setItem('user', JSON.stringify(data.user));
-  }
+  if (data.token) localStorage.setItem('token', data.token);
+  if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
 };
 
 export const logout = () => {

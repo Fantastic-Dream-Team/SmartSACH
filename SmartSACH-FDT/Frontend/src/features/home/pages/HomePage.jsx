@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 const HomePage = () => {
   return (
     <div className="min-h-screen bg-white">
-      {/* ========== HEADER / NAVBAR ========== */}
+      {/* Navbar */}
       <nav className="bg-white shadow-sm px-6 py-4 fixed w-full top-0 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
@@ -32,7 +32,7 @@ const HomePage = () => {
         </div>
       </nav>
 
-      {/* ========== HERO SECTION ========== */}
+      {/* Hero Section */}
       <section 
         className="pt-24 pb-16 px-6 relative min-h-[600px] flex items-center"
         style={{
@@ -75,7 +75,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* ========== ¿QUIÉNES SOMOS? ========== */}
+      {/* ¿Quiénes somos? */}
       <section className="py-16 px-6 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -102,77 +102,49 @@ const HomePage = () => {
               </div>
             </div>
             <div className="rounded-xl overflow-hidden shadow-lg">
-              <img 
-                src="/images/Trabajadores.jpg" 
-                alt="Nuestro equipo" 
-                className="w-full h-80 object-cover"
-              />
+              <img src="/images/Trabajadores.jpg" alt="Nuestro equipo" className="w-full h-80 object-cover" />
             </div>
           </div>
         </div>
       </section>
 
-      {/* ========== NUESTROS SERVICIOS ========== */}
+      {/* Servicios */}
       <section className="py-16 px-6 bg-gray-50">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl font-bold text-center text-gray-800 mb-12">Nuestros Servicios</h2>
-          
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Card 1 - Recolección */}
             <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border-t-4 border-green-500">
               <div className="text-4xl mb-3">🗑️</div>
               <h3 className="text-xl font-semibold text-gray-800 mb-2">Recolección</h3>
               <p className="text-gray-600">Recolección oportuna de residuos en la comunidad.</p>
-              <img 
-                src="/images/camionsach.jpg" 
-                alt="Recolección" 
-                className="w-full h-24 object-cover rounded-lg mt-3"
-              />
+              <img src="/images/camionsach.jpg" alt="Recolección" className="w-full h-24 object-cover rounded-lg mt-3" />
             </div>
-            
-            {/* Card 2 - Rastro */}
             <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border-t-4 border-blue-500">
               <div className="text-4xl mb-3">📍</div>
               <h3 className="text-xl font-semibold text-gray-800 mb-2">Rastro</h3>
               <p className="text-gray-600">Sitio en campo real, la ubicación de los carrilleros.</p>
-              <img 
-                src="/images/trabajador.jpg" 
-                alt="Rastro" 
-                className="w-full h-24 object-cover rounded-lg mt-3"
-              />
+              <img src="/images/trabajador.jpg" alt="Rastro" className="w-full h-24 object-cover rounded-lg mt-3" />
             </div>
-            
-            {/* Card 3 - Reportes */}
             <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border-t-4 border-yellow-500">
               <div className="text-4xl mb-3">📋</div>
               <h3 className="text-xl font-semibold text-gray-800 mb-2">Reportes</h3>
               <p className="text-gray-600">Reporta incidentes y recibe atención rápida.</p>
-              <div className="w-full h-24 bg-yellow-100 rounded-lg mt-3 flex items-center justify-center text-3xl">
-                📋
-              </div>
+              <div className="w-full h-24 bg-yellow-100 rounded-lg mt-3 flex items-center justify-center text-3xl">📋</div>
             </div>
-            
-            {/* Card 4 - Pagos */}
             <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border-t-4 border-purple-500">
               <div className="text-4xl mb-3">💰</div>
               <h3 className="text-xl font-semibold text-gray-800 mb-2">Pagos</h3>
               <p className="text-gray-600">Contiene los pagos y suscripciones.</p>
-              <div className="w-full h-24 bg-purple-100 rounded-lg mt-3 flex items-center justify-center text-3xl">
-                💰
-              </div>
+              <div className="w-full h-24 bg-purple-100 rounded-lg mt-3 flex items-center justify-center text-3xl">💰</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ========== FOOTER ========== */}
+      {/* Footer */}
       <footer className="bg-green-800 text-white py-8 px-6">
         <div className="max-w-7xl mx-auto text-center">
-          <img 
-            src="/images/logos/logoblanco.png" 
-            alt="SmartSACH" 
-            className="h-12 w-auto mx-auto mb-4"
-          />
+          <img src="/images/logos/logoblanco.png" alt="SmartSACH" className="h-12 w-auto mx-auto mb-4" />
           <p className="text-sm opacity-80">© 2026 SmartSACH. Todos los derechos reservados.</p>
           <p className="text-xs opacity-60 mt-2">Gestión inteligente de recolección en Chiriquí</p>
         </div>

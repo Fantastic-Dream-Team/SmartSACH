@@ -38,7 +38,7 @@ export default function App() {
               <ProtectedRoute>
                 <Suspense fallback={
                   <div className="flex justify-center items-center min-h-screen bg-gray-50">
-                    <div className="w-12 h-12 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin" />
+                    <div className="w-12 h-12 rounded-full border-4 border-green-600 border-t-transparent animate-spin" />
                   </div>
                 }>
                   <DashboardPage onLogout={handleLogout} />
