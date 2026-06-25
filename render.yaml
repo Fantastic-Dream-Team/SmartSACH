@@ -2,8 +2,9 @@ services:
   - type: web
     name: smartsach-fdt
     runtime: docker
-    dockerfilePath: SmartSACH-FDT/Dockerfile
-    dockerContext: SmartSACH-FDT
+    rootDir: SmartSACH-FDT
+    dockerfilePath: Dockerfile
+    dockerContext: .
     envVars:
       - key: NODE_ENV
         value: production
