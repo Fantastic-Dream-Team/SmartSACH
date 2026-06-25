@@ -7,12 +7,19 @@
 
 export default function RutaItem({ direccion, zona, onClick }) {
   return (
-    <div style={styles.card} onClick={onClick}>
-      <div style={styles.info}>
-        <span style={styles.zona}>{zona || "Sin zona"}</span>
-        <span style={styles.direccion}>{direccion || "Sin dirección"}</span>
+    <div
+      className="bg-[#f0f0f0] rounded-[10px] px-4 py-[14px] flex items-center justify-between cursor-pointer transition-[background] duration-200 gap-3 hover:bg-[#e4e4e4]"
+      onClick={onClick}
+    >
+      <div className="flex flex-col gap-1 flex-1">
+        <span className="text-[11px] font-semibold text-[#2d6a4f] uppercase tracking-[0.5px]">
+          {zona || "Sin zona"}
+        </span>
+        <span className="text-[14px] text-[#333] leading-[1.4]">
+          {direccion || "Sin dirección"}
+        </span>
       </div>
-      <div style={styles.iconWrapper}>
+      <div className="shrink-0">
         {/* Ícono de mapa */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -33,38 +40,3 @@ export default function RutaItem({ direccion, zona, onClick }) {
     </div>
   );
 }
-
-const styles = {
-  card: {
-    backgroundColor: "#f0f0f0",
-    borderRadius: "10px",
-    padding: "14px 16px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    cursor: "pointer",
-    transition: "background 0.2s",
-    gap: "12px",
-  },
-  info: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "4px",
-    flex: 1,
-  },
-  zona: {
-    fontSize: "11px",
-    fontWeight: "600",
-    color: "#2d6a4f",
-    textTransform: "uppercase",
-    letterSpacing: "0.5px",
-  },
-  direccion: {
-    fontSize: "14px",
-    color: "#333",
-    lineHeight: "1.4",
-  },
-  iconWrapper: {
-    flexShrink: 0,
-  },
-};
