@@ -48,6 +48,7 @@ const HomePage = () => {
       <section className="py-16 px-6 bg-gradient-to-br from-green-50 via-white to-blue-50">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
+            {/* Texto */}
             <div>
               <h2 className="text-4xl font-bold text-gray-800 mb-6 flex items-center gap-3">
                 <span className="text-green-600">✨</span>
@@ -73,8 +74,15 @@ const HomePage = () => {
                 </div>
               </div>
             </div>
-            <div className="rounded-2xl overflow-hidden shadow-2xl ring-4 ring-green-200">
-              <img src="/images/Trabajadores.jpg" alt="Nuestro equipo" className="w-full h-80 object-cover" />
+            
+            {/* Imagen con efecto */}
+            <div className="rounded-2xl overflow-hidden shadow-2xl ring-4 ring-green-200 relative group">
+              <img 
+                src="/images/Trabajadores.jpg" 
+                alt="Nuestro equipo" 
+                className="w-full h-80 object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black/20 to-transparent"></div>
             </div>
           </div>
         </div>
