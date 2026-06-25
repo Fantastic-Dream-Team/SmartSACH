@@ -26,27 +26,27 @@ export default function Navbar() {
     navigate('/');
   };
 
-  // Links para usuarios NO autenticados
+  // Links para usuarios NO autenticados (los que se ven en la segunda imagen)
   const publicLinks = [
-    { path: '/', label: '🏠 Homepage' },
-    { path: '/planes', label: '📋 Planes' },
-    { path: '/login', label: '🔑 Iniciar Sesión' },
-    { path: '/register', label: '📝 Registrarse' },
+    { path: '/', label: 'Homepage' },
+    { path: '/planes', label: 'Planes' },
+    { path: '/login', label: 'Iniciar Sesión' },
+    { path: '/register', label: 'Registrarse' },
   ];
 
   // Links para usuarios autenticados
   const privateLinks = [
-    { path: '/', label: '🏠 Home' },
-    { path: '/perfil', label: '👤 Perfil' },
-    { path: '/mapa', label: '🗺️ Mapa' },
-    { path: '/pagos', label: '💰 Pagos' },
-    { path: '/suscripcion', label: '📋 Suscripción' },
+    { path: '/', label: 'Home' },
+    { path: '/perfil', label: 'Perfil' },
+    { path: '/mapa', label: 'Mapa' },
+    { path: '/pagos', label: 'Pagos' },
+    { path: '/suscripcion', label: 'Suscripción' },
   ];
 
   const links = isAuthenticated ? privateLinks : publicLinks;
 
   return (
-    <nav className="bg-white shadow-sm px-6 py-4 fixed w-full top-0 z-50">
+    <nav className="bg-white shadow-md px-6 py-4 fixed w-full top-0 z-50">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
@@ -63,27 +63,26 @@ export default function Navbar() {
             <Link
               key={link.path}
               to={link.path}
-              className={`text-sm font-medium transition flex items-center gap-1.5 ${
+              className={`text-sm font-medium transition ${
                 location.pathname === link.path
                   ? 'text-green-700'
                   : 'text-gray-600 hover:text-green-600'
               }`}
             >
-              <span className="text-base">{link.label.split(' ')[0]}</span>
-              <span>{link.label.split(' ').slice(1).join(' ')}</span>
+              {link.label}
             </Link>
           ))}
 
           {isAuthenticated && (
             <>
-              <span className="text-sm text-gray-500 border-l pl-4 flex items-center gap-1.5">
-                <span>👋</span> {user?.nombre || 'Usuario'}
+              <span className="text-sm text-gray-500 border-l pl-4">
+                {user?.nombre || 'Usuario'}
               </span>
               <button
                 onClick={handleLogout}
-                className="text-sm text-red-500 hover:text-red-700 transition font-medium flex items-center gap-1.5"
+                className="text-sm text-red-500 hover:text-red-700 transition font-medium"
               >
-                <span>🚪</span> Cerrar Sesión
+                Cerrar Sesión
               </button>
             </>
           )}
@@ -112,29 +111,28 @@ export default function Navbar() {
               key={link.path}
               to={link.path}
               onClick={() => setIsMobileMenuOpen(false)}
-              className={`block px-4 py-2 rounded-lg transition text-sm flex items-center gap-2 ${
+              className={`block px-4 py-2 rounded-lg transition text-sm ${
                 location.pathname === link.path
                   ? 'bg-green-50 text-green-700'
                   : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
-              <span className="text-base">{link.label.split(' ')[0]}</span>
-              <span>{link.label.split(' ').slice(1).join(' ')}</span>
+              {link.label}
             </Link>
           ))}
           {isAuthenticated && (
             <>
-              <div className="px-4 py-2 text-sm text-gray-500 border-t border-gray-200 flex items-center gap-2">
-                <span>👋</span> {user?.nombre || 'Usuario'}
+              <div className="px-4 py-2 text-sm text-gray-500 border-t border-gray-200">
+                {user?.nombre || 'Usuario'}
               </div>
               <button
                 onClick={() => {
                   handleLogout();
                   setIsMobileMenuOpen(false);
                 }}
-                className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 rounded-lg transition flex items-center gap-2"
+                className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 rounded-lg transition"
               >
-                <span>🚪</span> Cerrar Sesión
+                Cerrar Sesión
               </button>
             </>
           )}
