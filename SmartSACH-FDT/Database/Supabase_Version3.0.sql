@@ -13,6 +13,8 @@ CREATE TABLE public.usuarios (
     nombre VARCHAR(50) NOT NULL,
     apellido VARCHAR(50) NOT NULL,
     cedula VARCHAR(20) NOT NULL UNIQUE,
+    telefono VARCHAR(20), -- Nuevo campo añadido
+    direccion VARCHAR(50), -- Nuevo campo añadido (máx 50 caracteres)
     correo_electronico VARCHAR(100) NOT NULL UNIQUE,
     estado_verificacion VARCHAR(20) CHECK (estado_verificacion IN ('pendiente', 'activo', 'suspendido')) DEFAULT 'pendiente',
     fecha_registro TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
@@ -108,6 +110,8 @@ BEGIN
         nombre, 
         apellido, 
         cedula, 
+        telefono,    -- Captura el teléfono desde metadata
+        direccion,   -- Captura la dirección desde metadata
         correo_electronico, 
         estado_verificacion
     )
@@ -116,6 +120,8 @@ BEGIN
         COALESCE(NEW.raw_user_meta_data->>'nombre', 'Usuario'), 
         COALESCE(NEW.raw_user_meta_data->>'apellido', 'Nuevo'),   
         COALESCE(NEW.raw_user_meta_data->>'cedula', '0-000-0000'), 
+        NEW.raw_user_meta_data->>'telefono', -- Puede ser nulo inicialmente en Auth si no se envía
+        SUBSTRING(COALESCE(NEW.raw_user_meta_data->>'direccion', '') FROM 1 FOR 50), -- Asegura max 50 caracteres
         NEW.email,
         'pendiente'
     );
@@ -123,6 +129,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- Recrear el trigger en el esquema auth
+DROP TRIGGER IF EXISTS tr_on_auth_user_created ON auth.users;
 CREATE OR REPLACE TRIGGER tr_on_auth_user_created
 AFTER INSERT ON auth.users
 FOR EACH ROW EXECUTE FUNCTION public.fn_sincronizar_auth_usuario();
@@ -149,28 +157,25 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS tr_activar_suscripcion_inicial ON public.usuarios;
 CREATE OR REPLACE TRIGGER tr_activar_suscripcion_inicial
 AFTER UPDATE ON public.usuarios
 FOR EACH ROW EXECUTE FUNCTION public.fn_activar_suscripcion_inicial();
 
 
--- TRIGGER 3: Alerta de Proximidad de Camión SACH
+-- TRIGGER 3: Actualización de metadatos de Camión SACH de forma segura
 CREATE OR REPLACE FUNCTION public.fn_alerta_proximidad_sach()
 RETURNS TRIGGER AS $$
 BEGIN
+    -- Únicamente actualiza la estampa de tiempo para evitar ciclos infinitos o bloqueos por inserción masiva.
     IF NEW.latitud <> OLD.latitud OR NEW.longitud <> OLD.longitud THEN
-        INSERT INTO public.notificaciones (usuario_id, titulo, mensaje, tipo_notificacion)
-        SELECT s.usuario_id, '¡Camión SACH en camino!', 
-               'El recolector de la ruta se está moviendo en tu sector.', 'ruta'
-        FROM public.suscripciones s
-        WHERE s.ruta_id = NEW.ruta_id;
-        
         NEW.ultima_actualizacion = CURRENT_TIMESTAMP;
     END IF;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS tr_alerta_proximidad_sach ON public.camiones_rastreo;
 CREATE OR REPLACE TRIGGER tr_alerta_proximidad_sach
 BEFORE UPDATE ON public.camiones_rastreo
 FOR EACH ROW EXECUTE FUNCTION public.fn_alerta_proximidad_sach();
