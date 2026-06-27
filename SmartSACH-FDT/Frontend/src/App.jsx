@@ -6,6 +6,7 @@ import Navbar from './components/Layout/Navbar.jsx';
 import HomePage from './features/home/pages/HomePage.jsx';
 import LoginPage from './features/auth/pages/LoginPage.jsx';
 import RegisterPage from './features/auth/pages/RegisterPage.jsx';
+import PlanesPage from './features/planes/pages/PlanesPage.jsx';
 import PerfilTab from './features/dashboard/components/PerfilTab.jsx';
 import MapaTab from './features/dashboard/components/MapaTab.jsx';
 import PagosTab from './features/dashboard/components/PagosTab.jsx';
@@ -41,6 +42,7 @@ export default function App() {
           {/* Rutas públicas */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage onLoginSuccess={handleLoginSuccess} />} />
+          <Route path="/planes" element={<PlanesPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
           {/* Rutas protegidas */}
