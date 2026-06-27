@@ -3,8 +3,8 @@ services:
   - type: web
     name: smartsach-fdt
     runtime: docker
-    dockerfilePath: SmartSACH-FDT/Dockerfile   # ruta a tu Dockerfile original
-    dockerContext: .                           # contexto desde la raíz del repo
+    dockerfilePath: SmartSACH-FDT/Dockerfile  
+    dockerContext: .                          
     envVars:
       - key: NODE_ENV
         value: production
