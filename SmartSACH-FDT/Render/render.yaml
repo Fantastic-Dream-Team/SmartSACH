@@ -1,9 +1,10 @@
 services:
+  # === SERVICIO PRINCIPAL (Backend Node + Frontend React) ===
   - type: web
     name: smartsach-fdt
     runtime: docker
-    dockerfilePath: SmartSACH-FDT/Dockerfile
-    dockerContext: .
+    dockerfilePath: SmartSACH-FDT/Dockerfile   # ruta a tu Dockerfile original
+    dockerContext: .                           # contexto desde la raíz del repo
     envVars:
       - key: NODE_ENV
         value: production
@@ -21,5 +22,44 @@ services:
         sync: false
       - key: DB_SSL
         value: true
+      - key: JWT_SECRET
+        generateValue: true
+
+  # === NUEVO MICROSERVICIO PHP (Autenticación) ===
+  - type: web
+    name: smartsach-php-auth
+    runtime: docker
+    dockerfilePath: Microservicio-PHP/Dockerfile   # ruta al Dockerfile del PHP
+    dockerContext: Microservicio-PHP               # contexto = carpeta del microservicio
+    envVars:
+      # URL del frontend React (donde redirigirá después del login)
+      - key: REACT_URL
+        value: https://smartsach-fdt.onrender.com   # la URL de tu servicio principal
+
+      # URL pública de este mismo servicio PHP (para redirecciones internas)
+      - key: PHP_URL
+        value: https://smartsach-php-auth.onrender.com   # se asignará automáticamente al crear el servicio
+
+      # Credenciales de Supabase (las mismas que usa el backend)
+      - key: SUPABASE_URL
+        value: https://hbgfywutsshezntatljs.supabase.co   # ajusta si es diferente
+      - key: SUPABASE_ANON_KEY
+        sync: false   # ingrésala manualmente en el panel de Render
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false   # ingrésala manualmente (solo si la necesitas)
+
+      # Conexión directa a la base de datos PostgreSQL (los mismos valores que el servicio principal)
+      - key: DB_HOST
+        value: aws-1-us-west-2.pooler.supabase.com
+      - key: DB_PORT
+        value: 5432
+      - key: DB_DATABASE
+        value: postgres
+      - key: DB_USER
+        value: postgres.hbgfywutsshezntatljs
+      - key: DB_PASSWORD
+        sync: false   # usa la misma contraseña que en el servicio principal (ingrésala manualmente)
+
+      # JWT (opcional, pero mantenlo por seguridad)
       - key: JWT_SECRET
         generateValue: true
