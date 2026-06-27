@@ -2,7 +2,8 @@ import { useEffect } from 'react';
 
 export default function LoginPage() {
   useEffect(() => {
-    const phpBaseUrl = import.meta.env.VITE_PHP_BASE_URL || 'http://localhost:8080';
+    // Usa la variable de entorno, pero si no está definida, usa la URL de Render directamente
+    const phpBaseUrl = import.meta.env.VITE_PHP_BASE_URL || 'https://smartsach-php-auth.onrender.com';
     window.location.href = `${phpBaseUrl}/login.php`;
   }, []);
 

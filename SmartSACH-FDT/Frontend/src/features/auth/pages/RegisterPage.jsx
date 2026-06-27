@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 export default function RegisterPage() {
   useEffect(() => {
-    const phpBaseUrl = import.meta.env.VITE_PHP_BASE_URL || 'http://localhost:8080';
+    const phpBaseUrl = import.meta.env.VITE_PHP_BASE_URL || 'https://smartsach-php-auth.onrender.com';
     window.location.href = `${phpBaseUrl}/register.php`;
   }, []);
 
