@@ -1,6 +1,5 @@
-import app from './app.js';
-import { PORT } from './config/env.js';
-
-app.listen(PORT, () => {
-    console.log(`SmartSACH API escuchando en el puerto ${PORT}`);
+const path = require('path');
+app.use(express.static(path.join(__dirname, '../Frontend/dist')));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../Frontend/dist', 'index.html'));
 });
