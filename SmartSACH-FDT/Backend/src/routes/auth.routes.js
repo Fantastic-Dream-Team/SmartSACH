@@ -23,3 +23,5 @@ router.get('/me', requireAuth, async (req, res) => {
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
+
+export default router;
