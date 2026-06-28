@@ -1,35 +1,34 @@
 // Backend/src/config/supabase.js
 import { createClient } from "@supabase/supabase-js";
-import ws from "ws"; // Importación manual para dar soporte a Node.js < 22
-import { env } from "./env.js";
+import ws from "ws";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./env.js"; 
 
-// Validar si la configuración existe en las variables actuales (DB_PASS, etc.)
-export const hasSupabaseConfig = Boolean(env.supabaseUrl && env.supabaseAnonKey);
+// Validar si la configuración existe
+export const hasSupabaseConfig = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 export const missingSupabaseConfig = [
-  !env.supabaseUrl ? "SUPABASE_URL" : null,
-  !env.supabaseAnonKey ? "SUPABASE_ANON_KEY" : null,
+  !SUPABASE_URL ? "SUPABASE_URL" : null,
+  !SUPABASE_ANON_KEY ? "SUPABASE_ANON_KEY" : null,
 ].filter(Boolean);
 
-// Inicializar el cliente inyectando manualmente el WebSocket transport
+// Inicializar el cliente
 export const supabase = hasSupabaseConfig
-  ? createClient(env.supabaseUrl, env.supabaseAnonKey, {
+  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: {
-        persistSession: false // Buenas prácticas para entornos de servidor Node.js
+        persistSession: false,
       },
       realtime: {
-        transport: ws // Esto soluciona el error "without native WebSocket support"
-      }
+        transport: ws,
+      },
     })
   : null;
 
 export function requireSupabase() {
   if (!supabase) {
     const error = new Error(
-      `Supabase no esta configurado en el backend. Faltan variables: ${missingSupabaseConfig.join(", ")}.`,
+      `Supabase no está configurado en el backend. Faltan variables: ${missingSupabaseConfig.join(", ")}.`,
     );
     error.statusCode = 503;
     throw error;
   }
-
   return supabase;
 }
