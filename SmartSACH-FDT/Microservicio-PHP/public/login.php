@@ -20,7 +20,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $result = loginUser($correo, $password);
             $accessToken = $result['access_token'];
-            // Redirigir a React con el token en la URL
             $redirectUrl = REACT_URL . '/dashboard?token=' . urlencode($accessToken);
             header('Location: ' . $redirectUrl);
             exit;

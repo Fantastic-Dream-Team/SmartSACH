@@ -3,6 +3,7 @@ import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import supabase from '../config/database.js';
+import { requireAuth } from '../middleware/auth.js';
 import { JWT_SECRET } from '../config/env.js';
 
 const router = express.Router();
@@ -142,6 +143,30 @@ router.post('/login', async (req, res) => {
         console.error('Error en login:', error);
         res.status(500).json({ error: 'Error interno del servidor: ' + error.message });
     }
+});
+
+router.get('/me', requireAuth, async (req, res) => {
+  try {
+    // req.user viene del middleware requireAuth (contiene el objeto de Supabase)
+    const authId = req.user.id; // UUID de Supabase Auth
+
+    // Buscar en la tabla pública 'usuarios' usando el auth_id
+    const { data: user, error } = await supabase
+      .from('usuarios')
+      .select('usuario_id, nombre, apellido, cedula, telefono, direccion, correo_electronico, estado_verificacion')
+      .eq('auth_id', authId)
+      .single();
+
+    if (error) {
+      console.error('Error al obtener usuario por auth_id:', error);
+      return res.status(404).json({ error: 'Usuario no encontrado en la tabla pública' });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error('Error en /me:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
 });
 
 export default router;
