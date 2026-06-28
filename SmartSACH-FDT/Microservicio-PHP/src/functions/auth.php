@@ -115,20 +115,34 @@ function loginUser($correo, $password)
     $user = $stmt->fetch();
 
     if (!$user) {
-        // Si no existe en la tabla pública, puede que el trigger no haya funcionado; lo creamos manualmente
-        $stmtInsert = $db->prepare('INSERT INTO public.usuarios 
-            (auth_id, nombre, apellido, cedula, correo_electronico, estado_verificacion)
-            SELECT id, :nombre, :apellido, :cedula, :correo, \'activo\' 
-            FROM auth.users 
-            WHERE email = :correo');
-        $stmtInsert->execute([
-            ':nombre' => $userData['nombre'] ?? 'Usuario',
-            ':apellido' => $userData['apellido'] ?? '',
-            ':cedula' => $userData['cedula'] ?? '0-000-0000',
-            ':correo' => $correo,
-        ]);
-        $stmt->execute([':correo' => $correo]);
-        $user = $stmt->fetch();
+        // Si no existe en la tabla pública, puede que el trigger no haya funcionado
+        // Obtener auth_id de auth.users (que Supabase creó al autenticar)
+        try {
+            $stmtGetAuthId = $db->prepare('SELECT id FROM auth.users WHERE email = :correo');
+            $stmtGetAuthId->execute([':correo' => $correo]);
+            $authResult = $stmtGetAuthId->fetch();
+            
+            if ($authResult) {
+                // Crear registro mínimo con datos básicos
+                $stmtInsert = $db->prepare('INSERT INTO public.usuarios 
+                    (auth_id, nombre, apellido, cedula, correo_electronico, estado_verificacion)
+                    VALUES 
+                    (:auth_id, :nombre, :apellido, :cedula, :correo, \'activo\')');
+                $stmtInsert->execute([
+                    ':auth_id' => $authResult['id'],
+                    ':nombre' => 'Usuario',
+                    ':apellido' => 'S/N',
+                    ':cedula' => '0-000-0000',
+                    ':correo' => $correo,
+                ]);
+                
+                // Volver a consultar
+                $stmt->execute([':correo' => $correo]);
+                $user = $stmt->fetch();
+            }
+        } catch (Exception $e) {
+            error_log('Error al crear usuario en public.usuarios: ' . $e->getMessage());
+        }
     }
 
     return [
