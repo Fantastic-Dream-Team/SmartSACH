@@ -61,7 +61,7 @@ function registerUser($nombre, $apellido, $cedula, $correo, $telefono, $password
             cedula = :cedula,
             telefono = :telefono,
             direccion = :direccion');
-    
+
     $stmtInsert->execute([
         ':auth_id' => $authResult['id'],
         ':nombre' => $nombre,
