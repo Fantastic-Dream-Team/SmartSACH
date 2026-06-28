@@ -120,7 +120,7 @@ function loginUser($correo, $password)
         $stmtGetAuthId = $db->prepare('SELECT id FROM auth.users WHERE email = :correo');
         $stmtGetAuthId->execute([':correo' => $correo]);
         $authResult = $stmtGetAuthId->fetch();
-        
+
         if (!$authResult) {
             throw new Exception('Usuario no autenticado en Supabase.');
         }
@@ -136,7 +136,7 @@ function loginUser($correo, $password)
             ':cedula' => '0-000-0000',
             ':correo' => $correo,
         ]);
-        
+
         // Volver a consultar para retornar el usuario creado
         $stmt->execute([':correo' => $correo]);
         $user = $stmt->fetch();
