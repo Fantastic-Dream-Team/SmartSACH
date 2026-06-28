@@ -115,9 +115,31 @@ function loginUser($correo, $password)
     $user = $stmt->fetch();
 
     if (!$user) {
-        // El usuario debería existir en public.usuarios si se registró exitosamente
-        // Si no existe aquí, algo falló en el registro o en el trigger de Supabase
-        throw new Exception('Usuario no encontrado. Por favor, regístrate primero.');
+        // Si no existe en la tabla pública, puede que el trigger no haya funcionado; lo creamos manualmente
+        // Obtener auth_id de auth.users y crear registro mínimo
+        $stmtGetAuthId = $db->prepare('SELECT id FROM auth.users WHERE email = :correo');
+        $stmtGetAuthId->execute([':correo' => $correo]);
+        $authResult = $stmtGetAuthId->fetch();
+        
+        if (!$authResult) {
+            throw new Exception('Usuario no autenticado en Supabase.');
+        }
+
+        $stmtInsert = $db->prepare('INSERT INTO public.usuarios 
+            (auth_id, nombre, apellido, cedula, correo_electronico, estado_verificacion)
+            VALUES 
+            (:auth_id, :nombre, :apellido, :cedula, :correo, \'activo\')');
+        $stmtInsert->execute([
+            ':auth_id' => $authResult['id'],
+            ':nombre' => 'Usuario',
+            ':apellido' => '',
+            ':cedula' => '0-000-0000',
+            ':correo' => $correo,
+        ]);
+        
+        // Volver a consultar para retornar el usuario creado
+        $stmt->execute([':correo' => $correo]);
+        $user = $stmt->fetch();
     }
 
     return [
