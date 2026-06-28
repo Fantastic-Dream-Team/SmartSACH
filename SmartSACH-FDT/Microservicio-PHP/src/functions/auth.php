@@ -53,21 +53,30 @@ function registerUser($nombre, $apellido, $cedula, $correo, $telefono, $password
 
     if (!$user) {
         // Si el trigger no se ejecutó, insertamos manualmente (por si acaso)
-        $stmtInsert = $db->prepare('INSERT INTO public.usuarios 
-            (auth_id, nombre, apellido, cedula, telefono, direccion, correo_electronico, estado_verificacion)
-            VALUES 
-            ((SELECT id FROM auth.users WHERE email = :correo), :nombre, :apellido, :cedula, :telefono, :direccion, :correo, \'pendiente\')');
-        $stmtInsert->execute([
-            ':correo' => $correo,
-            ':nombre' => $nombre,
-            ':apellido' => $apellido,
-            ':cedula' => $cedula,
-            ':telefono' => $telefono,
-            ':direccion' => $direccion,
-        ]);
-        // Volver a consultar
-        $stmt->execute([':correo' => $correo]);
-        $user = $stmt->fetch();
+        // Primero obtener el auth_id
+        $stmtGetAuthId = $db->prepare('SELECT id FROM auth.users WHERE email = :correo');
+        $stmtGetAuthId->execute([':correo' => $correo]);
+        $authResult = $stmtGetAuthId->fetch();
+
+        if ($authResult) {
+            // Ahora insertamos con el auth_id conocido
+            $stmtInsert = $db->prepare('INSERT INTO public.usuarios 
+                (auth_id, nombre, apellido, cedula, telefono, direccion, correo_electronico, estado_verificacion)
+                VALUES 
+                (:auth_id, :nombre, :apellido, :cedula, :telefono, :direccion, :correo, \'activo\')');
+            $stmtInsert->execute([
+                ':auth_id' => $authResult['id'],
+                ':nombre' => $nombre,
+                ':apellido' => $apellido,
+                ':cedula' => $cedula,
+                ':telefono' => $telefono,
+                ':direccion' => $direccion,
+                ':correo' => $correo,
+            ]);
+            // Volver a consultar
+            $stmt->execute([':correo' => $correo]);
+            $user = $stmt->fetch();
+        }
     }
 
     return $user;
