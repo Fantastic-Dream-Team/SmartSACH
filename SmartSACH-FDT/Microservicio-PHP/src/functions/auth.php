@@ -40,44 +40,44 @@ function registerUser($nombre, $apellido, $cedula, $correo, $telefono, $password
         throw new Exception($errorMsg);
     }
 
-    // 2. Esperar un momento para que el trigger de Supabase (si existe) cree el registro en la tabla pública
-    usleep(500000); // 0.5 segundos
-
-    // 3. Obtener el usuario recién creado desde la tabla pública usando Prepared Statement
+    // 2. Obtener el auth_id recién creado
     $db = Database::getInstance()->getPdo();
-    $stmt = $db->prepare('SELECT usuario_id, nombre, apellido, cedula, correo_electronico, estado_verificacion 
+    $stmtGetAuthId = $db->prepare('SELECT id FROM auth.users WHERE email = :correo');
+    $stmtGetAuthId->execute([':correo' => $correo]);
+    $authResult = $stmtGetAuthId->fetch();
+
+    if (!$authResult) {
+        throw new Exception('Error al recuperar usuario de Supabase Auth');
+    }
+
+    // 3. Insertar directamente en public.usuarios con TODOS los datos completos
+    $stmtInsert = $db->prepare('INSERT INTO public.usuarios 
+        (auth_id, nombre, apellido, cedula, telefono, direccion, correo_electronico, estado_verificacion)
+        VALUES 
+        (:auth_id, :nombre, :apellido, :cedula, :telefono, :direccion, :correo, \'activo\')
+        ON CONFLICT (correo_electronico) DO UPDATE SET 
+            nombre = :nombre,
+            apellido = :apellido,
+            cedula = :cedula,
+            telefono = :telefono,
+            direccion = :direccion');
+    
+    $stmtInsert->execute([
+        ':auth_id' => $authResult['id'],
+        ':nombre' => $nombre,
+        ':apellido' => $apellido,
+        ':cedula' => $cedula,
+        ':telefono' => $telefono,
+        ':direccion' => $direccion,
+        ':correo' => $correo,
+    ]);
+
+    // 4. Obtener el usuario guardado
+    $stmt = $db->prepare('SELECT usuario_id, nombre, apellido, cedula, telefono, direccion, correo_electronico, estado_verificacion 
                            FROM public.usuarios 
                            WHERE correo_electronico = :correo');
     $stmt->execute([':correo' => $correo]);
     $user = $stmt->fetch();
-
-    if (!$user) {
-        // Si el trigger no se ejecutó, insertamos manualmente (por si acaso)
-        // Primero obtener el auth_id
-        $stmtGetAuthId = $db->prepare('SELECT id FROM auth.users WHERE email = :correo');
-        $stmtGetAuthId->execute([':correo' => $correo]);
-        $authResult = $stmtGetAuthId->fetch();
-
-        if ($authResult) {
-            // Ahora insertamos con el auth_id conocido
-            $stmtInsert = $db->prepare('INSERT INTO public.usuarios 
-                (auth_id, nombre, apellido, cedula, telefono, direccion, correo_electronico, estado_verificacion)
-                VALUES 
-                (:auth_id, :nombre, :apellido, :cedula, :telefono, :direccion, :correo, \'activo\')');
-            $stmtInsert->execute([
-                ':auth_id' => $authResult['id'],
-                ':nombre' => $nombre,
-                ':apellido' => $apellido,
-                ':cedula' => $cedula,
-                ':telefono' => $telefono,
-                ':direccion' => $direccion,
-                ':correo' => $correo,
-            ]);
-            // Volver a consultar
-            $stmt->execute([':correo' => $correo]);
-            $user = $stmt->fetch();
-        }
-    }
 
     return $user;
 }
@@ -117,7 +117,7 @@ function loginUser($correo, $password)
 
     // 2. Obtener perfil del usuario desde la tabla pública con Prepared Statement
     $db = Database::getInstance()->getPdo();
-    $stmt = $db->prepare('SELECT usuario_id, nombre, apellido, cedula, correo_electronico, estado_verificacion 
+    $stmt = $db->prepare('SELECT usuario_id, nombre, apellido, cedula, telefono, direccion, correo_electronico, estado_verificacion 
                            FROM public.usuarios 
                            WHERE correo_electronico = :correo');
     $stmt->execute([':correo' => $correo]);
